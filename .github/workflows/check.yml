@@ -12,8 +12,8 @@ jobs:
     strategy:
       matrix:
         # os: [macos-latest, ubuntu-latest, windows-latest]
-	# problem with xvfb
-	os: [macos-latest, windows-latest]
+# problem with xvfb
+	os: [macos-latest,  windows-latest]
         java: [11]
 
     name: Run Checks
