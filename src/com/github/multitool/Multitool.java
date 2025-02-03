@@ -1,6 +1,6 @@
 import java.nio.file.FileSystems;
 
-public class Main {
+public class Multitool {
     public static void main(String[] args) {
         try {
             startSecondJVM();
