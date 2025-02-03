@@ -4,6 +4,7 @@ import java.nio.file.FileSystems;
 
 public class Multitool {
   public static void main(String[] args) {
+    String multitool = getNameAndVersion();
     try {
       startSecondJVM();
     } catch (Exception e) {
@@ -21,5 +22,10 @@ public class Multitool {
     String command = dq + path + dq + " -jar " + jar;
     System.out.println(command);
     Runtime.getRuntime().exec(command);
+  }
+  private static String getNameAndVersion() {
+    String retVal = "";
+    retVal = StaticEntityLite.getVersion();
+    return retVal;
   }
 }
