@@ -1,3 +1,5 @@
+package com.github.multitool;
+
 import java.nio.file.FileSystems;
 
 public class Multitool {
