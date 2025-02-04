@@ -297,16 +297,6 @@ gradle.taskGraph.whenReady { graph ->
 	}
 }
 
-task tsDefs(type: JavaExec) {
-	classpath = sourceSets.main.runtimeClasspath
-	mainClass = "net.sourceforge.multitool.textui.TypescriptDefinition"
-	doFirst {
-		args lastRevision()
-	}
-}
-
-tsDefs.dependsOn getRevision
-
 tasks.jpackage {
 	dependsOn shadowJar, cleanJpackage
 	input = 'dist'
