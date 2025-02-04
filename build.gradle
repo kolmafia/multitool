@@ -144,7 +144,7 @@ task cleanDist(type: Delete) {
 	outputs.upToDateWhen { true }
 	doLast {
 		file('dist').eachFile(groovy.io.FileType.FILES) { File file ->
-			if (file.name.startsWith('KoLmafia-') && file.name.endsWith('.jar')) {
+			if (file.name.startsWith('multitool-') && file.name.endsWith('.jar')) {
 				delete file
 			}
 		}
@@ -159,7 +159,7 @@ task pruneDist(type: Delete) {
 	outputs.upToDateWhen { true }
 	doLast {
 		file('dist').eachFile(groovy.io.FileType.FILES) { File file ->
-			if (file.name.startsWith('KoLmafia-') && file.name.endsWith('.jar')) {
+			if (file.name.startsWith('multitool-') && file.name.endsWith('.jar')) {
 				if (!file.name.contains(project.getVersion().toString()) || (isDirty() != file.name.endsWith('-M.jar'))) {
 					delete file
 				}
@@ -216,7 +216,7 @@ jar {
 	}
 	duplicatesStrategy = 'exclude'
 	destinationDirectory = file('dist/')
-	archiveBaseName.set('KoLmafia')
+	archiveBaseName.set('multitool')
 	archiveClassifier.set("${isDirty() ? 'M' : ''}")
 }
 
@@ -323,7 +323,7 @@ gradle.taskGraph.whenReady { graph ->
 
 task tsDefs(type: JavaExec) {
 	classpath = sourceSets.main.runtimeClasspath
-	mainClass = "net.sourceforge.kolmafia.textui.TypescriptDefinition"
+	mainClass = "net.sourceforge.multitool.textui.TypescriptDefinition"
 	doFirst {
 		args lastRevision()
 	}
@@ -336,10 +336,10 @@ tasks.jpackage {
 	input = 'dist'
 	destination = 'build/releases'
 	mainClass = 'com.github.multitool.Multitool'
-	appName = 'KoLmafia'
+	appName = 'multitool'
 	appVersion = new Date().format('yy.MM')
 	linux {
-		icon = 'util/linux/KoLmafia.ico'
+		icon = 'util/linux/multitool.ico'
 	}
 	mac {
 		type = 'dmg'
@@ -347,7 +347,7 @@ tasks.jpackage {
 	}
 	windows {
 		type = 'exe'
-		icon = 'util/windows/KoLmafia.ico'
+		icon = 'util/windows/multitool.ico'
 		winShortcut = true
 		winPerUserInstall = true
 		javaOptions = ["-DuseCWDasROOT=true"]
