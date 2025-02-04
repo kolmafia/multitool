@@ -1,6 +1,10 @@
 package com.github.multitool;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.FileSystems;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -40,6 +44,7 @@ public class Multitool {
     List<String> tools = processDirectory("KoLmafia");
     System.out.println(tools);
     System.out.println("End KoLmafia");
+    String latest = getMafiaRelease();
   }
 
   private static List<String> processDirectory(String nameRoot) {
@@ -61,6 +66,36 @@ public class Multitool {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+    return retVal;
+  }
+
+  private static String getMafiaRelease() {
+    //String rel = "https://api.github.com/repos/kolmafia/multitool/releases/latest";
+    String rel = "https://github.com/kolmafia/multitool/releases";
+    String retVal;
+      URL url;
+      try {
+          url = new URL(rel);
+      } catch (MalformedURLException e) {
+          throw new RuntimeException(e);
+      }
+      InputStream is;
+      try {
+          is = url.openStream();
+      } catch (IOException e) {
+          throw new RuntimeException(e);
+      }
+      int ptr;
+    StringBuffer buffer = new StringBuffer();
+    while (true) {
+        try {
+            if ((ptr = is.read()) == -1) break;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        buffer.append((char)ptr);
+    }
+    retVal = buffer.toString();
     return retVal;
   }
 }
