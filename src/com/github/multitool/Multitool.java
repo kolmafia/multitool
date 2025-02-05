@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Multitool {
-  public static void main(String[] args) {
+  public static void main(String[] args) throws IOException {
     processMultitool();
     processKolMafia();
     // processJava();
@@ -34,10 +34,13 @@ public class Multitool {
     Runtime.getRuntime().exec(command);
   }
 
-  private static void processMultitool() {
-    List<String> tools = processDirectory("Multitool");
+  private static void processMultitool() throws IOException {
+    List<String> tools = processDirectory("multitool");
+    System.out.println("Local multitool jar files.");
     System.out.println(tools);
-    System.out.println("End Multitool");
+    String latest = getMultitoolRelease();
+    System.out.println("Latest multitool release: " + latest);
+    System.out.println("End multitool");
   }
 
   private static void processKolMafia() {
@@ -45,7 +48,7 @@ public class Multitool {
     System.out.println("Local KoLmafia jar files.");
     System.out.println(tools);
     String latest = getMafiaRelease();
-    System.out.println("latest KoLmafia release: " + latest);
+    System.out.println("Latest KoLmafia release: " + latest);
     System.out.println("End KoLmafia");
   }
 
@@ -87,12 +90,50 @@ public class Multitool {
       throw new RuntimeException(e);
     }
     int ptr;
-    StringBuffer buffer = new StringBuffer();
+    StringBuilder buffer = new StringBuilder();
     while (true) {
       try {
         if ((ptr = is.read()) == -1) break;
       } catch (IOException e) {
         throw new RuntimeException(e);
+      }
+      buffer.append((char) ptr);
+    }
+    String dq = "\"";
+    String js = buffer.toString();
+    String findMe = dq + "name" + dq + ":";
+    int i = js.indexOf(findMe);
+    js = js.substring(i + findMe.length());
+    i = js.indexOf(",");
+    js = js.substring(0, i);
+    js = js.replaceAll("\"", "");
+    retVal = js;
+    return retVal;
+  }
+
+  private static String getMultitoolRelease() throws IOException {
+    String rel = "https://api.github.com/repos/kolmafia/multitool/releases/latest";
+    String retVal;
+    URL url;
+    try {
+      url = new URL(rel);
+    } catch (MalformedURLException e) {
+      throw new RuntimeException(e);
+    }
+    InputStream is;
+    try {
+      is = url.openStream();
+    } catch (IOException e) {
+      retVal = "Unknown";
+      return retVal;
+    }
+    int ptr;
+    StringBuilder buffer = new StringBuilder();
+    while (true) {
+      try {
+        if ((ptr = is.read()) == -1) break;
+      } catch (IOException e) {
+        throw new IOException(e);
       }
       buffer.append((char) ptr);
     }
