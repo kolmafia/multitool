@@ -48,7 +48,7 @@ public class Multitool {
     System.out.println("Local KoLmafia jar files.");
     System.out.println(tools);
     String latest = getMafiaRelease();
-    System.out.println("Latest KoLmafia release: " + latest);
+    System.out.println("latest KoLmafia release: " + latest);
     System.out.println("End KoLmafia");
   }
 
@@ -90,7 +90,7 @@ public class Multitool {
       throw new RuntimeException(e);
     }
     int ptr;
-    StringBuilder buffer = new StringBuilder();
+    StringBuffer buffer = new StringBuffer();
     while (true) {
       try {
         if ((ptr = is.read()) == -1) break;
@@ -110,7 +110,6 @@ public class Multitool {
     retVal = js;
     return retVal;
   }
-
   private static String getMultitoolRelease() throws IOException {
     String rel = "https://api.github.com/repos/kolmafia/multitool/releases/latest";
     String retVal;
