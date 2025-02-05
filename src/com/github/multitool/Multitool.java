@@ -110,6 +110,7 @@ public class Multitool {
     retVal = js;
     return retVal;
   }
+
   private static String getMultitoolRelease() throws IOException {
     String rel = "https://api.github.com/repos/kolmafia/multitool/releases/latest";
     String retVal;
