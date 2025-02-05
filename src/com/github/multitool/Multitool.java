@@ -42,9 +42,11 @@ public class Multitool {
 
   private static void processKolMafia() {
     List<String> tools = processDirectory("KoLmafia");
+    System.out.println("Local KoLmafia jar files.");
     System.out.println(tools);
-    System.out.println("End KoLmafia");
     String latest = getMafiaRelease();
+    System.out.println("latest KoLmafia release: " + latest);
+    System.out.println("End KoLmafia");
   }
 
   private static List<String> processDirectory(String nameRoot) {
@@ -70,32 +72,39 @@ public class Multitool {
   }
 
   private static String getMafiaRelease() {
-    //String rel = "https://api.github.com/repos/kolmafia/multitool/releases/latest";
-    String rel = "https://github.com/kolmafia/multitool/releases";
+    String rel = "https://api.github.com/repos/kolmafia/kolmafia/releases/latest";
     String retVal;
-      URL url;
-      try {
-          url = new URL(rel);
-      } catch (MalformedURLException e) {
-          throw new RuntimeException(e);
-      }
-      InputStream is;
-      try {
-          is = url.openStream();
-      } catch (IOException e) {
-          throw new RuntimeException(e);
-      }
-      int ptr;
+    URL url;
+    try {
+      url = new URL(rel);
+    } catch (MalformedURLException e) {
+      throw new RuntimeException(e);
+    }
+    InputStream is;
+    try {
+      is = url.openStream();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    int ptr;
     StringBuffer buffer = new StringBuffer();
     while (true) {
-        try {
-            if ((ptr = is.read()) == -1) break;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        buffer.append((char)ptr);
+      try {
+        if ((ptr = is.read()) == -1) break;
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      buffer.append((char) ptr);
     }
-    retVal = buffer.toString();
+    String dq = "\"";
+    String js = buffer.toString();
+    String findMe = dq + "name" + dq + ":";
+    int i = js.indexOf(findMe);
+    js = js.substring(i + findMe.length());
+    i = js.indexOf(",");
+    js = js.substring(0, i);
+    js = js.replaceAll("\"", "");
+    retVal = js;
     return retVal;
   }
 }
