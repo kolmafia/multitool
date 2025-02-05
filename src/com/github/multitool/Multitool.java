@@ -1,6 +1,10 @@
 package com.github.multitool;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.FileSystems;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -38,7 +42,10 @@ public class Multitool {
 
   private static void processKolMafia() {
     List<String> tools = processDirectory("KoLmafia");
+    System.out.println("Local KoLmafia jar files.");
     System.out.println(tools);
+    String latest = getMafiaRelease();
+    System.out.println("latest KoLmafia release: " + latest);
     System.out.println("End KoLmafia");
   }
 
@@ -61,6 +68,43 @@ public class Multitool {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+    return retVal;
+  }
+
+  private static String getMafiaRelease() {
+    String rel = "https://api.github.com/repos/kolmafia/kolmafia/releases/latest";
+    String retVal;
+    URL url;
+    try {
+      url = new URL(rel);
+    } catch (MalformedURLException e) {
+      throw new RuntimeException(e);
+    }
+    InputStream is;
+    try {
+      is = url.openStream();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    int ptr;
+    StringBuffer buffer = new StringBuffer();
+    while (true) {
+      try {
+        if ((ptr = is.read()) == -1) break;
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      buffer.append((char) ptr);
+    }
+    String dq = "\"";
+    String js = buffer.toString();
+    String findMe = dq + "name" + dq + ":";
+    int i = js.indexOf(findMe);
+    js = js.substring(i + findMe.length());
+    i = js.indexOf(",");
+    js = js.substring(0, i);
+    js = js.replaceAll("\"", "");
+    retVal = js;
     return retVal;
   }
 }
