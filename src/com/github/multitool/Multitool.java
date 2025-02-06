@@ -34,7 +34,6 @@ public class Multitool {
     Runtime.getRuntime().exec(command);
   }
 
-
   private static void processMultitool() {
 
     List<String> tools = processDirectory("multitool");
