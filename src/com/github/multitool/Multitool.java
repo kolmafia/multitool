@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Multitool {
-  public static void main(String[] args) {
+  public static void main(String[] args) throws IOException {
     processMultitool();
     processKolMafia();
     processJava();
@@ -34,7 +34,9 @@ public class Multitool {
     Runtime.getRuntime().exec(command);
   }
 
+
   private static void processMultitool() {
+
     List<String> tools = processDirectory("multitool");
     System.out.println("Local multitool jar files.");
     System.out.println(tools);
@@ -112,6 +114,7 @@ public class Multitool {
   }
 
   private static String getMultitoolRelease() {
+
     String rel = "https://api.github.com/repos/kolmafia/multitool/releases/latest";
     String retVal;
     URL url;
