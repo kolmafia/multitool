@@ -14,7 +14,7 @@ public class Multitool {
   public static void main(String[] args) throws IOException {
     processMultitool();
     processKolMafia();
-    // processJava();
+    processJava();
     try {
       startSecondJVM();
     } catch (Exception e) {
@@ -34,7 +34,8 @@ public class Multitool {
     Runtime.getRuntime().exec(command);
   }
 
-  private static void processMultitool() throws IOException {
+  private static void processMultitool() {
+
     List<String> tools = processDirectory("multitool");
     System.out.println("Local multitool jar files.");
     System.out.println(tools);
@@ -90,7 +91,7 @@ public class Multitool {
       throw new RuntimeException(e);
     }
     int ptr;
-    StringBuffer buffer = new StringBuffer();
+    StringBuilder buffer = new StringBuilder();
     while (true) {
       try {
         if ((ptr = is.read()) == -1) break;
@@ -111,14 +112,17 @@ public class Multitool {
     return retVal;
   }
 
-  private static String getMultitoolRelease() throws IOException {
+  private static String getMultitoolRelease() {
+
     String rel = "https://api.github.com/repos/kolmafia/multitool/releases/latest";
     String retVal;
     URL url;
     try {
       url = new URL(rel);
     } catch (MalformedURLException e) {
-      throw new RuntimeException(e);
+      System.out.println(e);
+      retVal = "Unknown";
+      return retVal;
     }
     InputStream is;
     try {
@@ -133,7 +137,9 @@ public class Multitool {
       try {
         if ((ptr = is.read()) == -1) break;
       } catch (IOException e) {
-        throw new IOException(e);
+        System.out.println(e);
+        retVal = "Unknown";
+        return retVal;
       }
       buffer.append((char) ptr);
     }
@@ -147,5 +153,30 @@ public class Multitool {
     js = js.replaceAll("\"", "");
     retVal = js;
     return retVal;
+  }
+
+  private static void processJava() {
+    String javaVersion = getJavaVersion();
+    System.out.println("Local, running Java version: " + javaVersion);
+  }
+
+  private static String getJavaVersion() {
+    new StringBuilder("Unknown");
+    StringBuilder retVal;
+    char[] pp = System.getProperty("java.home").toCharArray();
+    int end = pp.length - 1;
+    boolean first;
+    first = false;
+    retVal = new StringBuilder();
+    for (int x = end; x >= 0; x--) {
+      char ppp = pp[x];
+      if (Character.isDigit(ppp)) {
+        first = true;
+        retVal.insert(0, ppp);
+      } else {
+        if (first) break;
+      }
+    }
+    return retVal.toString();
   }
 }
