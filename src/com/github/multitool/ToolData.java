@@ -5,9 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ToolData {
+  private final String toolName;
   private int currentVersion;
   private int latestVersion;
-  private final String toolName;
   private Path downloadURL;
   private List<String> localJars = new ArrayList<>();
 
