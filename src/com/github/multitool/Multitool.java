@@ -11,16 +11,34 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Multitool {
-  public static void main(String[] args) throws IOException {
+  public static void main(String[] args) {
+    processLocalInformation();
+    displayLocalInformation();
     processMultitool();
     processKolMafia();
-    processJava();
     try {
       startSecondJVM();
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
     System.exit(0);
+  }
+
+  private static String cdw;
+  private static String localJava;
+  private static int localJavaVersion;
+
+  private static void processLocalInformation() {
+    String separator = FileSystems.getDefault().getSeparator();
+    cdw = Paths.get("").toAbsolutePath().toString();
+    localJava = System.getProperty("java.home") + separator + "bin" + separator + "java";
+    localJavaVersion = getJavaVersion();
+  }
+
+  public static void displayLocalInformation() {
+    System.out.println("Current working directory: " + cdw);
+    System.out.println("Path to local Java: " + localJava);
+    System.out.println("Local Java version: " + localJavaVersion);
   }
 
   public static void startSecondJVM() throws Exception {
@@ -155,28 +173,24 @@ public class Multitool {
     return retVal;
   }
 
-  private static void processJava() {
-    String javaVersion = getJavaVersion();
-    System.out.println("Local, running Java version: " + javaVersion);
-  }
-
-  private static String getJavaVersion() {
+  private static int getJavaVersion() {
     new StringBuilder("Unknown");
-    StringBuilder retVal;
+    StringBuilder local;
+    int retVal = 0;
     char[] pp = System.getProperty("java.home").toCharArray();
     int end = pp.length - 1;
     boolean first;
     first = false;
-    retVal = new StringBuilder();
+    local = new StringBuilder();
     for (int x = end; x >= 0; x--) {
       char ppp = pp[x];
       if (Character.isDigit(ppp)) {
         first = true;
-        retVal.insert(0, ppp);
+        local.insert(0, ppp);
       } else {
         if (first) break;
       }
     }
-    return retVal.toString();
+    return Integer.parseInt(local.toString());
   }
 }
