@@ -1,5 +1,7 @@
 package com.github.multitool;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +11,7 @@ public class ToolData {
   private int currentVersion;
   private int latestVersion;
   private Path downloadURL;
+  private File latestJarFile;
   private List<String> localJars = new ArrayList<>();
   private boolean localModificationFound;
 
@@ -55,6 +58,12 @@ public class ToolData {
   @Override
   public String toString() {
     String NL = "\n";
+    String latestJarFileString;
+    try {
+      latestJarFileString = latestJarFile.getCanonicalPath();
+    } catch (IOException e) {
+      latestJarFileString = e.getMessage() + " when resolving.";
+    }
     return "ToolData for "
         + toolName
         + NL
@@ -70,6 +79,9 @@ public class ToolData {
         + "localJars="
         + localJars
         + NL
+        + "latestJarFile="
+        + latestJarFileString
+        + NL
         + "localModificationFound="
         + localModificationFound;
   }
@@ -80,5 +92,13 @@ public class ToolData {
 
   public void setLocalModificationFound(boolean localModificationFound) {
     this.localModificationFound = localModificationFound;
+  }
+
+  public File getLatestJarFile() {
+    return latestJarFile;
+  }
+
+  public void setLatestJarFile(File latestJar) {
+    this.latestJarFile = latestJar;
   }
 }

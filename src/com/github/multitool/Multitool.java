@@ -12,7 +12,7 @@ import java.util.List;
 
 public class Multitool {
 
-  private static String cdw;
+  private static String cwd;
   private static String localJava;
   private static int localJavaVersion;
   private static int preferredJava;
@@ -27,7 +27,7 @@ public class Multitool {
     ToolData mafiaData = processTool("kolmafia");
     displayToolInformation(mafiaData);
     try {
-      startSecondJVM();
+      startSecondJVM(mafiaData);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -36,26 +36,24 @@ public class Multitool {
 
   private static void processLocalInformation() {
     String separator = FileSystems.getDefault().getSeparator();
-    cdw = Paths.get("").toAbsolutePath().toString();
+    cwd = Paths.get("").toAbsolutePath().toString();
     localJava = System.getProperty("java.home") + separator + "bin" + separator + "java";
     localJavaVersion = getLocalJavaVersion();
   }
 
   public static void displayLocalInformation() {
-    System.out.println("Current working directory: " + cdw);
+    System.out.println("Current working directory: " + cwd);
     System.out.println("Path to local Java: " + localJava);
     System.out.println("Local Java version: " + localJavaVersion);
   }
 
-  public static void startSecondJVM() throws Exception {
-    String separator = FileSystems.getDefault().getSeparator();
-    String path = System.getProperty("java.home") + separator + "bin" + separator + "java";
+  public static void startSecondJVM(ToolData tool) throws Exception {
+    String path = localJava;
     String dq = "\"";
-    String jar =
-        "C:/Users/frono/IdeaProjects/MultiTool/out/production/MultiTool/KolMafia-28320.jar";
+    String jar = tool.getLatestJarFile().getCanonicalPath();
     String command = dq + path + dq + " -jar " + jar;
     System.out.println(command);
-    Runtime.getRuntime().exec(command);
+    //Runtime.getRuntime().exec(command);
   }
 
   private static List<String> processDirectory(String nameRoot) {
@@ -63,7 +61,7 @@ public class Multitool {
     List<String> retVal = new ArrayList<>();
     String lcRoot = nameRoot.toLowerCase();
     try {
-      File f = new File(cdw);
+      File f = new File(cwd);
       String[] files = f.list();
       if (files != null) {
         for (String file : files) {
@@ -105,20 +103,24 @@ public class Multitool {
     retVal.setLocalJars(processDirectory(toolName));
     retVal.setLocalModificationFound(false);
     List<String> locals = retVal.getLocalJars();
+    String runMe = "";
     int localVersion = 0;
-    for (String jarName : locals) {
+    for (String systemJarName : locals) {
+      String jarName = systemJarName.toLowerCase();
       int i = jarName.indexOf(toolName);
       String hold = jarName.substring(i + toolName.length() + 1);
       i = hold.indexOf(".jar");
       hold = hold.substring(0, i);
-      if (hold.contains("-M")) {
-        i = hold.indexOf("-M");
+      if (hold.contains("-m")) {
+        i = hold.indexOf("-m");
         hold = hold.substring(0, i);
         retVal.setLocalModificationFound(true);
       }
+      runMe = systemJarName;
       localVersion = Integer.parseInt(hold);
     }
     retVal.setCurrentVersion(localVersion);
+    retVal.setLatestJarFile(Paths.get(runMe).toFile());
     return retVal;
   }
 
