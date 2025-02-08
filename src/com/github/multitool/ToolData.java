@@ -10,6 +10,7 @@ public class ToolData {
   private int latestVersion;
   private Path downloadURL;
   private List<String> localJars = new ArrayList<>();
+  private boolean localModificationFound;
 
   public ToolData(String name) {
     this.toolName = name;
@@ -54,10 +55,30 @@ public class ToolData {
   @Override
   public String toString() {
     String NL = "\n";
-    return "ToolData for " + toolName + NL +
-            "currentVersion=" + currentVersion + NL +
-            "latestVersion=" + latestVersion + NL +
-            "downloadURL=" + downloadURL + NL +
-            "localJars=" + localJars;
+    return "ToolData for "
+        + toolName
+        + NL
+        + "currentVersion="
+        + currentVersion
+        + NL
+        + "latestVersion="
+        + latestVersion
+        + NL
+        + "downloadURL="
+        + downloadURL
+        + NL
+        + "localJars="
+        + localJars
+        + NL
+        + "localModificationFound="
+        + localModificationFound;
+  }
+
+  public boolean isLocalModificationFound() {
+    return localModificationFound;
+  }
+
+  public void setLocalModificationFound(boolean localModificationFound) {
+    this.localModificationFound = localModificationFound;
   }
 }

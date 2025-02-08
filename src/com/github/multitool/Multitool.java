@@ -11,19 +11,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Multitool {
+
   private static String cdw;
   private static String localJava;
   private static int localJavaVersion;
-
+  private static int preferredJava;
 
   public static void main(String[] args) {
     processLocalInformation();
     displayLocalInformation();
+    preferredJava = getPreferredJava();
+    System.out.println("Preferred Java version: " + preferredJava);
     ToolData multiData = processTool("multitool");
     displayToolInformation(multiData);
     ToolData mafiaData = processTool("kolmafia");
     displayToolInformation(mafiaData);
-
     try {
       startSecondJVM();
     } catch (Exception e) {
@@ -32,12 +34,11 @@ public class Multitool {
     System.exit(0);
   }
 
-
   private static void processLocalInformation() {
     String separator = FileSystems.getDefault().getSeparator();
     cdw = Paths.get("").toAbsolutePath().toString();
     localJava = System.getProperty("java.home") + separator + "bin" + separator + "java";
-    localJavaVersion = getJavaVersion();
+    localJavaVersion = getLocalJavaVersion();
   }
 
   public static void displayLocalInformation() {
@@ -57,11 +58,10 @@ public class Multitool {
     Runtime.getRuntime().exec(command);
   }
 
-   private static List<String> processDirectory(String nameRoot) {
+  private static List<String> processDirectory(String nameRoot) {
     // Returns a list of file names in the current directory that match
     List<String> retVal = new ArrayList<>();
     String lcRoot = nameRoot.toLowerCase();
-    String currentWorkingDir = Paths.get("").toAbsolutePath().toString();
     try {
       File f = new File(cdw);
       String[] files = f.list();
@@ -79,10 +79,9 @@ public class Multitool {
     return retVal;
   }
 
-  private static int getJavaVersion() {
+  private static int getLocalJavaVersion() {
     new StringBuilder("Unknown");
     StringBuilder local;
-    int retVal = 0;
     char[] pp = System.getProperty("java.home").toCharArray();
     int end = pp.length - 1;
     boolean first;
@@ -104,6 +103,22 @@ public class Multitool {
     ToolData retVal = new ToolData(toolName);
     retVal.setLatestVersion(getLatestReleaseVersion(toolName));
     retVal.setLocalJars(processDirectory(toolName));
+    retVal.setLocalModificationFound(false);
+    List<String> locals = retVal.getLocalJars();
+    int localVersion = 0;
+    for (String jarName : locals) {
+      int i = jarName.indexOf(toolName);
+      String hold = jarName.substring(i + toolName.length() + 1);
+      i = hold.indexOf(".jar");
+      hold = hold.substring(0, i);
+      if (hold.contains("-M")) {
+        i = hold.indexOf("-M");
+        hold = hold.substring(0, i);
+        retVal.setLocalModificationFound(true);
+      }
+      localVersion = Integer.parseInt(hold);
+    }
+    retVal.setCurrentVersion(localVersion);
     return retVal;
   }
 
@@ -148,5 +163,12 @@ public class Multitool {
     js = js.replaceAll("\"", "");
     retVal = js;
     return Integer.parseInt(retVal);
+  }
+
+  private static int getPreferredJava() {
+    int version = 21;
+    // I can't actually figure out where to get this from GitHub or KoLmafia.
+    // Deferred for the moment.
+    return version;
   }
 }
