@@ -53,7 +53,7 @@ public class Multitool {
     String jar = tool.getLatestJarFile().getCanonicalPath();
     String command = dq + path + dq + " -jar " + jar;
     System.out.println(command);
-    //Runtime.getRuntime().exec(command);
+    // Runtime.getRuntime().exec(command);
   }
 
   private static List<String> processDirectory(String nameRoot) {
