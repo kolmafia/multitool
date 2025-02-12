@@ -22,13 +22,17 @@ public class Multitool {
     processLocalInformation();
     displayLocalInformation();
     int preferredJava = getPreferredJava();
-    System.out.println("Preferred Java version: " + preferredJava);
+    System.out.println("Preferred Java version: " + preferredJava + "\n");
     ToolData multiData = processTool("multitool");
     displayToolInformation(multiData);
     ToolData mafiaData = processTool("kolmafia");
     displayToolInformation(mafiaData);
-    downloadAFile(multiData.getDownloadURL());
-    downloadAFile(mafiaData.getDownloadURL());
+    if (multiData.isNeedToDownload()) {
+      downloadAFile(multiData.getDownloadURL());
+    }
+    if (mafiaData.isNeedToDownload()) {
+      downloadAFile(mafiaData.getDownloadURL());
+    }
     try {
       startSecondJVM(mafiaData);
     } catch (Exception e) {
@@ -50,54 +54,10 @@ public class Multitool {
     System.out.println("Local Java version: " + localJavaVersion);
   }
 
-  public static void startSecondJVM(ToolData tool) throws Exception {
-    String path = localJava;
-    String dq = "\"";
-    String jar = tool.getLatestJarFile().getCanonicalPath();
-    String command = dq + path + dq + " -jar " + jar;
-    System.out.println(command);
-    // Runtime.getRuntime().exec(command);
-  }
-
-  private static List<String> processDirectory(String nameRoot) {
-    // Returns a list of file names in the current directory that match
-    List<String> retVal = new ArrayList<>();
-    String lcRoot = nameRoot.toLowerCase();
-    try {
-      File f = new File(cwd);
-      String[] files = f.list();
-      if (files != null) {
-        for (String file : files) {
-          String check = file.toLowerCase();
-          if ((check.startsWith(lcRoot)) && (check.endsWith(".jar"))) {
-            retVal.add(file);
-          }
-        }
-      }
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-    return retVal;
-  }
-
-  private static int getLocalJavaVersion() {
-    new StringBuilder("Unknown");
-    StringBuilder local;
-    char[] pp = System.getProperty("java.home").toCharArray();
-    int end = pp.length - 1;
-    boolean first;
-    first = false;
-    local = new StringBuilder();
-    for (int x = end; x >= 0; x--) {
-      char ppp = pp[x];
-      if (Character.isDigit(ppp)) {
-        first = true;
-        local.insert(0, ppp);
-      } else {
-        if (first) break;
-      }
-    }
-    return Integer.parseInt(local.toString());
+  private static int getPreferredJava() {
+    // I can't actually figure out where to get this from GitHub or KoLmafia.
+    // Deferred for the moment.
+    return 21;
   }
 
   private static ToolData processTool(String toolName) {
@@ -135,12 +95,57 @@ public class Multitool {
       localVersion = Integer.parseInt(hold);
     }
     retVal.setCurrentVersion(localVersion);
+    retVal.setNeedToDownload(localVersion < version);
     retVal.setLatestJarFile(Paths.get(runMe).toFile());
     return retVal;
   }
 
   private static void displayToolInformation(ToolData tool) {
-    System.out.println(tool);
+    System.out.println(tool + "\n");
+  }
+
+  private static void downloadAFile(String location) {
+    String localName = location.substring(location.lastIndexOf("/") + 1);
+    InputStream in = null;
+    try {
+      in = new URL(location).openStream();
+    } catch (IOException e) {
+      System.out.println("Failed to open " + location + " because " + e.getMessage());
+    }
+    try {
+      Files.copy(in, Paths.get(localName), StandardCopyOption.REPLACE_EXISTING);
+    } catch (IOException e) {
+      System.out.println("Failed to copy to  " + localName + " because " + e.getMessage());
+    }
+  }
+
+  public static void startSecondJVM(ToolData tool) throws Exception {
+    String path = localJava;
+    String dq = "\"";
+    String jar = tool.getLatestJarFile().getCanonicalPath();
+    String command = dq + path + dq + " -jar " + jar;
+    System.out.println(command);
+    // Runtime.getRuntime().exec(command);
+  }
+
+  private static int getLocalJavaVersion() {
+    new StringBuilder("Unknown");
+    StringBuilder local;
+    char[] pp = System.getProperty("java.home").toCharArray();
+    int end = pp.length - 1;
+    boolean first;
+    first = false;
+    local = new StringBuilder();
+    for (int x = end; x >= 0; x--) {
+      char ppp = pp[x];
+      if (Character.isDigit(ppp)) {
+        first = true;
+        local.insert(0, ppp);
+      } else {
+        if (first) break;
+      }
+    }
+    return Integer.parseInt(local.toString());
   }
 
   private static int getLatestReleaseVersion(String tool) {
@@ -182,24 +187,24 @@ public class Multitool {
     return Integer.parseInt(retVal);
   }
 
-  private static int getPreferredJava() {
-    // I can't actually figure out where to get this from GitHub or KoLmafia.
-    // Deferred for the moment.
-    return 21;
-  }
-
-  private static void downloadAFile(String location) {
-    String localName = location.substring(location.lastIndexOf("/") + 1);
-    InputStream in = null;
+  private static List<String> processDirectory(String nameRoot) {
+    // Returns a list of file names in the current directory that match
+    List<String> retVal = new ArrayList<>();
+    String lcRoot = nameRoot.toLowerCase();
     try {
-      in = new URL(location).openStream();
-    } catch (IOException e) {
-      System.out.println("Failed to open " + location + " because " + e.getMessage());
+      File f = new File(cwd);
+      String[] files = f.list();
+      if (files != null) {
+        for (String file : files) {
+          String check = file.toLowerCase();
+          if ((check.startsWith(lcRoot)) && (check.endsWith(".jar"))) {
+            retVal.add(file);
+          }
+        }
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
-    try {
-      Files.copy(in, Paths.get(localName), StandardCopyOption.REPLACE_EXISTING);
-    } catch (IOException e) {
-      System.out.println("Failed to copy to  " + localName + " because " + e.getMessage());
-    }
+    return retVal;
   }
 }
