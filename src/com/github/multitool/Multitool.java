@@ -29,10 +29,14 @@ public class Multitool {
     displayToolInformation(mafiaData);
     downloadAFile(multiData.getDownloadURL());
     downloadAFile(mafiaData.getDownloadURL());
-    try {
-      startSecondJVM(mafiaData);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
+    if (args.length > 0) {
+      if (args[0].equalsIgnoreCase("run")) {
+        try {
+          startSecondJVM(mafiaData);
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      }
     }
     System.exit(0);
   }
@@ -56,7 +60,7 @@ public class Multitool {
     String jar = tool.getLatestJarFile().getCanonicalPath();
     String command = dq + path + dq + " -jar " + jar;
     System.out.println(command);
-    // Runtime.getRuntime().exec(command);
+    Runtime.getRuntime().exec(command);
   }
 
   private static List<String> processDirectory(String nameRoot) {
@@ -190,16 +194,13 @@ public class Multitool {
 
   private static void downloadAFile(String location) {
     String localName = location.substring(location.lastIndexOf("/") + 1);
-    InputStream in = null;
+    InputStream in;
     try {
       in = new URL(location).openStream();
-    } catch (IOException e) {
-      System.out.println("Failed to open " + location + " because " + e.getMessage());
-    }
-    try {
       Files.copy(in, Paths.get(localName), StandardCopyOption.REPLACE_EXISTING);
     } catch (IOException e) {
-      System.out.println("Failed to copy to  " + localName + " because " + e.getMessage());
+      System.out.println(
+          "Failed to open/copy " + location + "to " + localName + " because " + e.getMessage());
     }
   }
 }
