@@ -33,10 +33,14 @@ public class Multitool {
     if (mafiaData.isNeedToDownload()) {
       downloadAFile(mafiaData.getDownloadURL());
     }
-    try {
-      startSecondJVM(mafiaData);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
+    if (args.length > 0) {
+      if (args[0].equalsIgnoreCase("run")) {
+        try {
+          startSecondJVM(mafiaData);
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      }
     }
     System.exit(0);
   }
