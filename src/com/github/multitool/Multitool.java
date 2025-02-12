@@ -22,13 +22,17 @@ public class Multitool {
     processLocalInformation();
     displayLocalInformation();
     int preferredJava = getPreferredJava();
-    System.out.println("Preferred Java version: " + preferredJava);
+    System.out.println("Preferred Java version: " + preferredJava + "\n");
     ToolData multiData = processTool("multitool");
     displayToolInformation(multiData);
     ToolData mafiaData = processTool("kolmafia");
     displayToolInformation(mafiaData);
-    downloadAFile(multiData.getDownloadURL());
-    downloadAFile(mafiaData.getDownloadURL());
+    if (multiData.isNeedToDownload()) {
+      downloadAFile(multiData.getDownloadURL());
+    }
+    if (mafiaData.isNeedToDownload()) {
+      downloadAFile(mafiaData.getDownloadURL());
+    }
     try {
       startSecondJVM(mafiaData);
     } catch (Exception e) {
@@ -91,12 +95,13 @@ public class Multitool {
       localVersion = Integer.parseInt(hold);
     }
     retVal.setCurrentVersion(localVersion);
+    retVal.setNeedToDownload(localVersion < version);
     retVal.setLatestJarFile(Paths.get(runMe).toFile());
     return retVal;
   }
 
   private static void displayToolInformation(ToolData tool) {
-    System.out.println(tool);
+    System.out.println(tool + "\n");
   }
 
   private static void downloadAFile(String location) {

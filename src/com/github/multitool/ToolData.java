@@ -13,6 +13,7 @@ public class ToolData {
   private File latestJarFile;
   private List<String> localJars = new ArrayList<>();
   private boolean localModificationFound;
+  private boolean needToDownload;
 
   public ToolData(String name) {
     this.toolName = name;
@@ -75,6 +76,9 @@ public class ToolData {
         + "downloadURL="
         + downloadURL
         + NL
+        + "needToDownload="
+        + needToDownload
+        + NL
         + "localJars="
         + localJars
         + NL
@@ -99,5 +103,13 @@ public class ToolData {
 
   public void setLatestJarFile(File latestJar) {
     this.latestJarFile = latestJar;
+  }
+
+  public boolean isNeedToDownload() {
+    return needToDownload;
+  }
+
+  public void setNeedToDownload(boolean needToDownload) {
+    this.needToDownload = needToDownload;
   }
 }
