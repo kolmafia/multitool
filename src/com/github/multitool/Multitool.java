@@ -6,7 +6,9 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,17 +17,18 @@ public class Multitool {
   private static String cwd;
   private static String localJava;
   private static int localJavaVersion;
-  private static int preferredJava;
 
   public static void main(String[] args) {
     processLocalInformation();
     displayLocalInformation();
-    preferredJava = getPreferredJava();
+    int preferredJava = getPreferredJava();
     System.out.println("Preferred Java version: " + preferredJava);
     ToolData multiData = processTool("multitool");
     displayToolInformation(multiData);
     ToolData mafiaData = processTool("kolmafia");
     displayToolInformation(mafiaData);
+    downloadAFile(multiData.getDownloadURL());
+    downloadAFile(mafiaData.getDownloadURL());
     try {
       startSecondJVM(mafiaData);
     } catch (Exception e) {
@@ -100,6 +103,18 @@ public class Multitool {
   private static ToolData processTool(String toolName) {
     ToolData retVal = new ToolData(toolName);
     retVal.setLatestVersion(getLatestReleaseVersion(toolName));
+    int version = retVal.getLatestVersion();
+    String remoteFile =
+        "https://github.com/kolmafia/"
+            + toolName
+            + "/releases/download/r"
+            + version
+            + "/"
+            + toolName
+            + "-"
+            + version
+            + ".jar";
+    retVal.setDownloadURL(remoteFile);
     retVal.setLocalJars(processDirectory(toolName));
     retVal.setLocalModificationFound(false);
     List<String> locals = retVal.getLocalJars();
@@ -168,9 +183,23 @@ public class Multitool {
   }
 
   private static int getPreferredJava() {
-    int version = 21;
     // I can't actually figure out where to get this from GitHub or KoLmafia.
     // Deferred for the moment.
-    return version;
+    return 21;
+  }
+
+  private static void downloadAFile(String location) {
+    String localName = location.substring(location.lastIndexOf("/") + 1);
+    InputStream in = null;
+    try {
+      in = new URL(location).openStream();
+    } catch (IOException e) {
+      System.out.println("Failed to open " + location + " because " + e.getMessage());
+    }
+    try {
+      Files.copy(in, Paths.get(localName), StandardCopyOption.REPLACE_EXISTING);
+    } catch (IOException e) {
+      System.out.println("Failed to copy to  " + localName + " because " + e.getMessage());
+    }
   }
 }

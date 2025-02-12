@@ -2,7 +2,6 @@ package com.github.multitool;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,7 +9,7 @@ public class ToolData {
   private final String toolName;
   private int currentVersion;
   private int latestVersion;
-  private Path downloadURL;
+  private String downloadURL;
   private File latestJarFile;
   private List<String> localJars = new ArrayList<>();
   private boolean localModificationFound;
@@ -47,11 +46,11 @@ public class ToolData {
     return toolName;
   }
 
-  public Path getDownloadURL() {
+  public String getDownloadURL() {
     return downloadURL;
   }
 
-  public void setDownloadURL(Path downloadURL) {
+  public void setDownloadURL(String downloadURL) {
     this.downloadURL = downloadURL;
   }
 
