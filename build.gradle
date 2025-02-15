@@ -218,7 +218,7 @@ task getRevision() {
 		file('build/revision.txt').text = revision.toString().trim()
 		// Update the version to the new revision
 		project.setVersion(revision.toString().trim())
-		def revString = isDirty() ? project.getVersion() +'-M': project.getVersion()
+		def revString = isDirty() ? project.getVersion() +'M': project.getVersion()
 		println '\nRevision: ' + revString
 	}
 }
