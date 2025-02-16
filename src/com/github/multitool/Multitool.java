@@ -20,19 +20,21 @@ public class Multitool {
 
   public static void main(String[] args) {
     processLocalInformation();
-    displayLocalInformation();
     int preferredJava = getPreferredJava();
-    System.out.println("Preferred Java version: " + preferredJava + "\n");
     ToolData multiData = processTool("multitool");
-    displayToolInformation(multiData);
     ToolData mafiaData = processTool("kolmafia");
-    displayToolInformation(mafiaData);
     if (multiData.isNeedToDownload()) {
       downloadAFile(multiData.getDownloadURL());
+      multiData = processTool("multitool");
     }
     if (mafiaData.isNeedToDownload()) {
       downloadAFile(mafiaData.getDownloadURL());
+      mafiaData = processTool("kolmafia");
     }
+    displayLocalInformation();
+    System.out.println("Preferred Java version: " + preferredJava + "\n");
+    displayToolInformation(multiData);
+    displayToolInformation(mafiaData);
     if (args.length > 0) {
       if (args[0].equalsIgnoreCase("run")) {
         try {
