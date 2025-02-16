@@ -47,8 +47,8 @@ public class Multitool {
 
   private static void processLocalInformation() {
     String separator = FileSystems.getDefault().getSeparator();
-    cwd = Paths.get("").toAbsolutePath().toString();
-    localJava = System.getProperty("java.home") + separator + "bin" + separator + "java";
+    cwd = cleanPath(Paths.get("").toAbsolutePath().toString());
+    localJava = cleanPath(System.getProperty("java.home") + separator + "bin" + separator + "java");
     localJavaVersion = getLocalJavaVersion();
   }
 
@@ -122,9 +122,8 @@ public class Multitool {
 
   public static void startSecondJVM(ToolData tool) throws Exception {
     String path = localJava;
-    String dq = "\"";
     String jar = tool.getLatestJarFile().getCanonicalPath();
-    String command = dq + path + dq + " -jar " + jar;
+    String command = path + " -jar " + jar;
     System.out.println(command);
     Runtime.getRuntime().exec(command);
   }
@@ -206,6 +205,15 @@ public class Multitool {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+    return retVal;
+  }
+
+  private static String cleanPath(String path) {
+    String retVal = path;
+    String fs = "/";
+    String bs = "\\\\";
+    retVal = retVal.replaceAll(bs, fs);
+    retVal = retVal.replaceAll(" ", bs + " ");
     return retVal;
   }
 }
