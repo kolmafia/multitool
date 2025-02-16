@@ -110,16 +110,13 @@ public class Multitool {
 
   private static void downloadAFile(String location) {
     String localName = location.substring(location.lastIndexOf("/") + 1);
-    InputStream in = null;
+    InputStream in;
     try {
       in = new URL(location).openStream();
-    } catch (IOException e) {
-      System.out.println("Failed to open " + location + " because " + e.getMessage());
-    }
-    try {
       Files.copy(in, Paths.get(localName), StandardCopyOption.REPLACE_EXISTING);
     } catch (IOException e) {
-      System.out.println("Failed to copy to  " + localName + " because " + e.getMessage());
+      System.out.println(
+          "Failed to open " + location + " or copy to " + localName + " because " + e.getMessage());
     }
   }
 
