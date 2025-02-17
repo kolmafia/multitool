@@ -73,7 +73,7 @@ jobs:
           path: dist/*.jar
 
   release:
-    needs: [bin, jar]
+    needs: [jar]
     if: github.repository == 'kolmafia/multitool'
     name: Publish Artifacts
     runs-on: ubuntu-latest
@@ -97,8 +97,6 @@ jobs:
         with:
           files: |
             dist/*.jar
-            releases-ubuntu-latest/*.deb
-            releases-macos-latest/*.dmg
           tag_name: r${{ env.MULTITOOL_VERSION }}
           target_commitish: ${{ github.sha }}
           name: ${{ env.MULTITOOL_VERSION }}
