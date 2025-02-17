@@ -293,59 +293,6 @@ gradle.taskGraph.whenReady { graph ->
 	}
 }
 
-tasks.jpackage {
-	dependsOn shadowJar, cleanJpackage
-	input = 'dist'
-	destination = 'build/releases'
-	mainClass = 'com.github.multitool.Multitool'
-	appName = 'multitool'
-	appVersion = new Date().format('yy.MM')
-	linux {
-		icon = 'util/linux/multitool.ico'
-	}
-	mac {
-		type = 'dmg'
-		icon = 'util/macosx/limeglass.icns'
-	}
-	windows {
-		type = 'exe'
-		icon = 'util/windows/multitool.ico'
-		winShortcut = true
-		winPerUserInstall = true
-		javaOptions = ["-DuseCWDasROOT=true"]
-	}
-	doFirst {
-		mainJar = tasks.shadowJar.archiveFileName.get()
-		appVersion += '.' + version + "${isDirty() ? 'M' : ''}"
-		println 'Packaging app ' + appName + '.' + appVersion + '...'
-		if (System.properties['os.name'] != 'Linux') {
-			return
-		}
-		def hasDeb = exec {
-			ignoreExitValue = true
-			errorOutput = OutputStream.nullOutputStream()
-			executable 'bash'
-			args '-c', 'which dpkg-deb'
-		}
-		def hasRpm = exec {
-			ignoreExitValue = true
-			errorOutput = OutputStream.nullOutputStream()
-			executable 'bash'
-			args '-c', 'which rpmbuild'
-		}
-		if (hasDeb.getExitValue() == 0) {
-			println 'Targeting deb for jpackage...'
-			linux { type = 'deb' }
-		} else if (hasRpm.getExitValue() == 0) {
-			println 'Targeting rpm for jpackage...'
-			linux { type = 'rpm' }
-		} else {
-			println 'Bundling all files for jpackage.'
-			linux { type = 'app-image' }
-		}
-	}
-}
-
 clean.dependsOn cleanDist
 pruneDist.dependsOn getRevision
 
