@@ -1,8 +1,11 @@
 package com.github.multitool;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.FileSystems;
@@ -11,14 +14,25 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Multitool {
 
+  private static final Logger log = LoggerFactory.getLogger(Multitool.class);
   private static String cwd;
   private static String localJava;
   private static int localJavaVersion;
+  private static PrintWriter logWriter;
 
   public static void main(String[] args) {
+    String logFileName = "foobar.out";
+    try {
+      logWriter = new PrintWriter(new BufferedWriter(new FileWriter(logFileName)));
+    } catch (IOException e) {
+      System.out.println("Can't open log file " + logFileName + " because " + e.getMessage());
+      System.exit(0);
+    }
     processLocalInformation();
     int preferredJava = getPreferredJava();
     ToolData multiData = processTool("multitool");
@@ -32,7 +46,7 @@ public class Multitool {
       mafiaData = processTool("kolmafia");
     }
     displayLocalInformation();
-    System.out.println("Preferred Java version: " + preferredJava + "\n");
+    logWriter.println("Preferred Java version: " + preferredJava);
     displayToolInformation(multiData);
     displayToolInformation(mafiaData);
     if (args.length > 0) {
@@ -44,6 +58,7 @@ public class Multitool {
         }
       }
     }
+    logWriter.close();
     System.exit(0);
   }
 
@@ -55,9 +70,9 @@ public class Multitool {
   }
 
   public static void displayLocalInformation() {
-    System.out.println("Current working directory: " + cwd);
-    System.out.println("Path to local Java: " + localJava);
-    System.out.println("Local Java version: " + localJavaVersion);
+    logWriter.println("Current working directory: " + cwd);
+    logWriter.println("Path to local Java: " + localJava);
+    logWriter.println("Local Java version: " + localJavaVersion);
   }
 
   private static int getPreferredJava() {
@@ -107,7 +122,7 @@ public class Multitool {
   }
 
   private static void displayToolInformation(ToolData tool) {
-    System.out.println(tool + "\n");
+    logWriter.println(tool);
   }
 
   private static void downloadAFile(String location) {
@@ -126,7 +141,7 @@ public class Multitool {
     String path = localJava;
     String jar = tool.getLatestJarFile().getCanonicalPath();
     String command = path + " -jar " + jar;
-    System.out.println(command);
+    logWriter.println(command);
     Runtime.getRuntime().exec(command);
   }
 
@@ -205,6 +220,7 @@ public class Multitool {
         }
       }
     } catch (Exception e) {
+      System.out.println("Problem creating " + cwd + " because " + e.getMessage());
       throw new RuntimeException(e);
     }
     return retVal;
