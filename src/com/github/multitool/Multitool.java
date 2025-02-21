@@ -12,8 +12,11 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +29,8 @@ public class Multitool {
   private static PrintWriter logWriter;
 
   public static void main(String[] args) {
-    String logFileName = "foobar.out";
+    String logFileName =
+        new SimpleDateFormat("yyyyMMdd", Locale.US).format(new Date()) + "_multitool.log";
     try {
       logWriter = new PrintWriter(new BufferedWriter(new FileWriter(logFileName)));
     } catch (IOException e) {
