@@ -1,38 +1,60 @@
 package com.github.multitool;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class Multitool {
 
   private static String cwd;
   private static String localJava;
   private static int localJavaVersion;
+  private static PrintWriter logWriter;
 
   public static void main(String[] args) {
+    String logFileName =
+        new SimpleDateFormat("yyyyMMdd", Locale.US).format(new Date()) + "_multitool.log";
+    try {
+      logWriter = new PrintWriter(new BufferedWriter(new FileWriter(logFileName)));
+    } catch (IOException e) {
+      System.out.println("Can't open log file " + logFileName + " because " + e.getMessage());
+      System.exit(0);
+    }
     processLocalInformation();
     int preferredJava = getPreferredJava();
     ToolData multiData = processTool("multitool");
     ToolData mafiaData = processTool("kolmafia");
     if (multiData.isNeedToDownload()) {
       downloadAFile(multiData.getDownloadURL());
+      logWriter.println("***");
+      logWriter.println("Downloaded newer version of multitool.");
+      logWriter.println("***");
       multiData = processTool("multitool");
     }
     if (mafiaData.isNeedToDownload()) {
       downloadAFile(mafiaData.getDownloadURL());
+      logWriter.println("***");
+      logWriter.println("Downloaded newer version of KoLmafia.");
+      logWriter.println("***");
+
       mafiaData = processTool("kolmafia");
     }
     displayLocalInformation();
-    System.out.println("Preferred Java version: " + preferredJava + "\n");
+    logWriter.println("Preferred Java version: " + preferredJava);
     displayToolInformation(multiData);
     displayToolInformation(mafiaData);
     if (args.length > 0) {
@@ -44,6 +66,7 @@ public class Multitool {
         }
       }
     }
+    logWriter.close();
     System.exit(0);
   }
 
@@ -55,9 +78,9 @@ public class Multitool {
   }
 
   public static void displayLocalInformation() {
-    System.out.println("Current working directory: " + cwd);
-    System.out.println("Path to local Java: " + localJava);
-    System.out.println("Local Java version: " + localJavaVersion);
+    logWriter.println("Current working directory: " + cwd);
+    logWriter.println("Path to local Java: " + localJava);
+    logWriter.println("Local Java version: " + localJavaVersion);
   }
 
   private static int getPreferredJava() {
@@ -107,7 +130,7 @@ public class Multitool {
   }
 
   private static void displayToolInformation(ToolData tool) {
-    System.out.println(tool + "\n");
+    logWriter.println(tool);
   }
 
   private static void downloadAFile(String location) {
@@ -126,7 +149,7 @@ public class Multitool {
     String path = localJava;
     String jar = tool.getLatestJarFile().getCanonicalPath();
     String command = path + " -jar " + jar;
-    System.out.println(command);
+    logWriter.println(command);
     Runtime.getRuntime().exec(command);
   }
 
@@ -153,29 +176,27 @@ public class Multitool {
   private static int getLatestReleaseVersion(String tool) {
     String rel = "https://api.github.com/repos/kolmafia/" + tool + "/releases/latest";
     String retVal;
+    StringBuilder buffer = new StringBuilder();
     URL url;
     try {
       url = new URL(rel);
     } catch (MalformedURLException e) {
       throw new RuntimeException(e);
     }
-    InputStream is;
-    try {
-      is = url.openStream();
-    } catch (IOException e) {
-      System.out.println(e);
-      return 0;
-    }
-    int ptr;
-    StringBuilder buffer = new StringBuilder();
-    while (true) {
-      try {
-        if ((ptr = is.read()) == -1) break;
-      } catch (IOException e) {
-        System.out.println(e);
-        return 0;
+    try (InputStream is = url.openStream()) {
+      int ptr;
+      while (true) {
+        try {
+          if ((ptr = is.read()) == -1) break;
+        } catch (IOException e) {
+          System.out.println("Unexpected error reading from " + url + ": " + e.getMessage());
+          return 0;
+        }
+        buffer.append((char) ptr);
       }
-      buffer.append((char) ptr);
+    } catch (IOException e) {
+      System.out.println("Problem opening " + url + ": " + e.getMessage());
+      return 0;
     }
     String dq = "\"";
     String js = buffer.toString();
@@ -205,7 +226,7 @@ public class Multitool {
         }
       }
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      System.out.println("Problem creating " + cwd + " because " + e.getMessage());
     }
     return retVal;
   }
