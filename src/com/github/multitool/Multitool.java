@@ -17,12 +17,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class Multitool {
 
-  private static final Logger log = LoggerFactory.getLogger(Multitool.class);
   private static String cwd;
   private static String localJava;
   private static int localJavaVersion;
@@ -43,10 +40,17 @@ public class Multitool {
     ToolData mafiaData = processTool("kolmafia");
     if (multiData.isNeedToDownload()) {
       downloadAFile(multiData.getDownloadURL());
+      logWriter.println("***");
+      logWriter.println("Downloaded newer version of multitool.");
+      logWriter.println("***");
       multiData = processTool("multitool");
     }
     if (mafiaData.isNeedToDownload()) {
       downloadAFile(mafiaData.getDownloadURL());
+      logWriter.println("***");
+      logWriter.println("Downloaded newer version of KoLmafia.");
+      logWriter.println("***");
+
       mafiaData = processTool("kolmafia");
     }
     displayLocalInformation();
@@ -172,29 +176,27 @@ public class Multitool {
   private static int getLatestReleaseVersion(String tool) {
     String rel = "https://api.github.com/repos/kolmafia/" + tool + "/releases/latest";
     String retVal;
+    StringBuilder buffer = new StringBuilder();
     URL url;
     try {
       url = new URL(rel);
     } catch (MalformedURLException e) {
       throw new RuntimeException(e);
     }
-    InputStream is;
-    try {
-      is = url.openStream();
-    } catch (IOException e) {
-      System.out.println(e);
-      return 0;
-    }
-    int ptr;
-    StringBuilder buffer = new StringBuilder();
-    while (true) {
-      try {
-        if ((ptr = is.read()) == -1) break;
-      } catch (IOException e) {
-        System.out.println(e);
-        return 0;
+    try (InputStream is = url.openStream()) {
+      int ptr;
+      while (true) {
+        try {
+          if ((ptr = is.read()) == -1) break;
+        } catch (IOException e) {
+          System.out.println("Unexpected error reading from " + url + ": " + e.getMessage());
+          return 0;
+        }
+        buffer.append((char) ptr);
       }
-      buffer.append((char) ptr);
+    } catch (IOException e) {
+      System.out.println("Problem opening " + url + ": " + e.getMessage());
+      return 0;
     }
     String dq = "\"";
     String js = buffer.toString();
@@ -225,7 +227,6 @@ public class Multitool {
       }
     } catch (Exception e) {
       System.out.println("Problem creating " + cwd + " because " + e.getMessage());
-      throw new RuntimeException(e);
     }
     return retVal;
   }
