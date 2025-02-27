@@ -50,13 +50,12 @@ public class Multitool {
       logWriter.println("***");
       logWriter.println("Downloaded newer version of KoLmafia.");
       logWriter.println("***");
-
       mafiaData = processTool("kolmafia");
     }
     displayLocalInformation();
     logWriter.println("Preferred Java version: " + preferredJava);
     if (preferredJava > localJavaVersion) {
-      logWriter.println("Local Java to low for KoLmafia.  Running disabled.");
+      logWriter.println("Local Java too low for KoLmafia.  Running disabled.");
     }
     displayToolInformation(multiData);
     displayToolInformation(mafiaData);
@@ -89,9 +88,38 @@ public class Multitool {
   }
 
   private static int getPreferredJava() {
-    // I can't actually figure out where to get this from GitHub or KoLmafia.
-    // Deferred for the moment.
-    return 21;
+    String rel = "https://raw.githubusercontent.com/kolmafia/kolmafia/refs/heads/main/README.md";
+    String retVal;
+    StringBuilder buffer = new StringBuilder();
+    URL url;
+    try {
+      url = new URL(rel);
+    } catch (MalformedURLException e) {
+      throw new RuntimeException(e);
+    }
+    try (InputStream is = url.openStream()) {
+      int ptr;
+      while (true) {
+        try {
+          if ((ptr = is.read()) == -1) break;
+        } catch (IOException e) {
+          System.out.println("Unexpected error reading from " + url + ": " + e.getMessage());
+          return 0;
+        }
+        buffer.append((char) ptr);
+      }
+    } catch (IOException e) {
+      System.out.println("Problem opening " + url + ": " + e.getMessage());
+      return 0;
+    }
+    String js = buffer.toString();
+    String findMe = "java&message=v";
+    int i = js.indexOf(findMe);
+    js = js.substring(i + findMe.length());
+    i = js.indexOf("&");
+    js = js.substring(0, i);
+    retVal = js;
+    return Integer.parseInt(retVal);
   }
 
   private static ToolData processTool(String toolName) {
@@ -159,23 +187,10 @@ public class Multitool {
   }
 
   private static int getLocalJavaVersion() {
-    new StringBuilder("Unknown");
-    StringBuilder local;
-    char[] pp = System.getProperty("java.home").toCharArray();
-    int end = pp.length - 1;
-    boolean first;
-    first = false;
-    local = new StringBuilder();
-    for (int x = end; x >= 0; x--) {
-      char ppp = pp[x];
-      if (Character.isDigit(ppp)) {
-        first = true;
-        local.insert(0, ppp);
-      } else {
-        if (first) break;
-      }
-    }
-    return Integer.parseInt(local.toString());
+    String locStr = System.getProperty("java.version");
+    int i = locStr.indexOf(".");
+    String num = locStr.substring(0, i);
+    return Integer.parseInt(num);
   }
 
   private static int getLatestReleaseVersion(String tool) {
