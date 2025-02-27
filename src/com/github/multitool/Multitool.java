@@ -55,12 +55,17 @@ public class Multitool {
     }
     displayLocalInformation();
     logWriter.println("Preferred Java version: " + preferredJava);
+    if (preferredJava > localJavaVersion) {
+      logWriter.println("Local Java to low for KoLmafia.  Running disabled.");
+    }
     displayToolInformation(multiData);
     displayToolInformation(mafiaData);
     if (args.length > 0) {
       if (args[0].equalsIgnoreCase("run")) {
         try {
-          startSecondJVM(mafiaData);
+          if (preferredJava <= localJavaVersion) {
+            startSecondJVM(mafiaData);
+          }
         } catch (Exception e) {
           throw new RuntimeException(e);
         }
