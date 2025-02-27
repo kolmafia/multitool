@@ -88,8 +88,38 @@ public class Multitool {
   }
 
   private static int getPreferredJava() {
-    downloadAFile("https://raw.githubusercontent.com/kolmafia/kolmafia/refs/heads/main/README.md");
-    return 21;
+    String rel = "https://raw.githubusercontent.com/kolmafia/kolmafia/refs/heads/main/README.md";
+    String retVal;
+    StringBuilder buffer = new StringBuilder();
+    URL url;
+    try {
+      url = new URL(rel);
+    } catch (MalformedURLException e) {
+      throw new RuntimeException(e);
+    }
+    try (InputStream is = url.openStream()) {
+      int ptr;
+      while (true) {
+        try {
+          if ((ptr = is.read()) == -1) break;
+        } catch (IOException e) {
+          System.out.println("Unexpected error reading from " + url + ": " + e.getMessage());
+          return 0;
+        }
+        buffer.append((char) ptr);
+      }
+    } catch (IOException e) {
+      System.out.println("Problem opening " + url + ": " + e.getMessage());
+      return 0;
+    }
+    String js = buffer.toString();
+    String findMe = "java&message=v";
+    int i = js.indexOf(findMe);
+    js = js.substring(i + findMe.length());
+    i = js.indexOf("&");
+    js = js.substring(0, i);
+    retVal = js;
+    return Integer.parseInt(retVal);
   }
 
   private static ToolData processTool(String toolName) {
