@@ -50,13 +50,12 @@ public class Multitool {
       logWriter.println("***");
       logWriter.println("Downloaded newer version of KoLmafia.");
       logWriter.println("***");
-
       mafiaData = processTool("kolmafia");
     }
     displayLocalInformation();
     logWriter.println("Preferred Java version: " + preferredJava);
     if (preferredJava > localJavaVersion) {
-      logWriter.println("Local Java to low for KoLmafia.  Running disabled.");
+      logWriter.println("Local Java too low for KoLmafia.  Running disabled.");
     }
     displayToolInformation(multiData);
     displayToolInformation(mafiaData);
@@ -89,8 +88,7 @@ public class Multitool {
   }
 
   private static int getPreferredJava() {
-    // I can't actually figure out where to get this from GitHub or KoLmafia.
-    // Deferred for the moment.
+    downloadAFile("https://raw.githubusercontent.com/kolmafia/kolmafia/refs/heads/main/README.md");
     return 21;
   }
 
@@ -159,23 +157,10 @@ public class Multitool {
   }
 
   private static int getLocalJavaVersion() {
-    new StringBuilder("Unknown");
-    StringBuilder local;
-    char[] pp = System.getProperty("java.home").toCharArray();
-    int end = pp.length - 1;
-    boolean first;
-    first = false;
-    local = new StringBuilder();
-    for (int x = end; x >= 0; x--) {
-      char ppp = pp[x];
-      if (Character.isDigit(ppp)) {
-        first = true;
-        local.insert(0, ppp);
-      } else {
-        if (first) break;
-      }
-    }
-    return Integer.parseInt(local.toString());
+    String locStr = System.getProperty("java.version");
+    int i = locStr.indexOf(".");
+    String num = locStr.substring(0, i);
+    return Integer.parseInt(num);
   }
 
   private static int getLatestReleaseVersion(String tool) {
