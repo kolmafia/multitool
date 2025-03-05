@@ -1,4 +1,4 @@
-package com.github.multitool;
+package us.kolmafia.multitool;
 
 import java.io.File;
 import java.util.ArrayList;
