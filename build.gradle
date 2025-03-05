@@ -86,7 +86,7 @@ dependencies {
 
 application {
 	// Define the main class for the application.
-	mainClass = 'com.github.multitool.Multitool'
+	mainClass = 'us.kolmafia.multitool.Multitool'
 }
 
 spotless {
@@ -168,7 +168,7 @@ jacocoTestReport {
 jar {
 	manifest {
 		attributes(
-				'Main-Class'      : 'com.github.multitool.Multitool',
+				'Main-Class'      : 'us.kolmafia.multitool.Multitool',
 				'Build-Revision'  : new Object() {
 					String toString() {
 						project.getVersion()
