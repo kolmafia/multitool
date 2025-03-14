@@ -241,7 +241,17 @@ public class Multitool {
         for (String file : files) {
           String check = file.toLowerCase();
           if ((check.startsWith(lcRoot)) && (check.endsWith(".jar"))) {
-            retVal.add(file);
+            String ver = check.substring(lcRoot.length() + 1, check.length() - 4);
+            if (ver.endsWith("-m")) {
+              ver = ver.substring(0, ver.length() - 2);
+            }
+            boolean isNumeric = ver.chars().allMatch(Character::isDigit);
+            if (isNumeric) {
+              retVal.add(file);
+            } else {
+              logWriter.println(
+                  "Local file " + file + " does not match expected naming condition.  Skipping.");
+            }
           }
         }
       }
