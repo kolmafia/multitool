@@ -1,0 +1,2 @@
+gradlew text eol=lf
+lib/** linguist-vendored
