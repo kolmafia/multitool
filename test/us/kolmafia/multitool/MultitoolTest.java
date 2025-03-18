@@ -4,7 +4,6 @@ import static java.nio.file.Files.copy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 import static us.kolmafia.multitool.Multitool.*;
 
 import java.io.File;
@@ -56,11 +55,16 @@ class MultitoolTest {
     assertTrue(inDir.isEmpty());
     Path dest = ROOT_LOCATION.toPath();
     assertTrue(validateDestination(dest));
-    try {
-      copy(source, dest, StandardCopyOption.REPLACE_EXISTING);
-    } catch (IOException e) {
-      fail("Could not copy files");
+    String filez[] = source.toFile().list();
+    for (int i = 0; i < filez.length; i++) {
+      File tFile = new File(filez[i]);
+      try {
+        copy(tFile.toPath(), dest, StandardCopyOption.REPLACE_EXISTING);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
     }
+
     inDir = processDirectory("Kolmafia");
     assertEquals(2, inDir.size());
     assertTrue(inDir.contains("KolMafia-1066.jar"));
