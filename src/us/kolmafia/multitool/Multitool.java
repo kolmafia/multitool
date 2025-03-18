@@ -247,7 +247,7 @@ public class Multitool {
     return Integer.parseInt(retVal);
   }
 
-  private static List<String> processDirectory(String nameRoot) {
+  static List<String> processDirectory(String nameRoot) {
     // Returns a list of file names in the current directory that match
     List<String> retVal = new ArrayList<>();
     String lcRoot = nameRoot.toLowerCase();
