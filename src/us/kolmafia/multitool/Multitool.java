@@ -19,6 +19,10 @@ import java.util.List;
 import java.util.Locale;
 
 public class Multitool {
+  /*
+  The code setting ROOT_LOCATION was lifted from KoLConstants.java and the dependency on
+  UtilityConstants.java eliminated by copying code from there.
+   */
   public static final File BASE_LOCATION =
       new File(System.getProperty("user.dir")).getAbsoluteFile();
   public static final File HOME_LOCATION =
@@ -33,7 +37,7 @@ public class Multitool {
           : USE_OSX_STYLE_DIRECTORIES
               ? new File(HOME_LOCATION, "Library/Application Support/KoLmafia")
               : USE_LINUX_STYLE_DIRECTORIES ? new File(HOME_LOCATION, ".kolmafia") : BASE_LOCATION;
-  private static String cwd;
+  static String cwd;
   private static String localJava;
   private static int localJavaVersion;
   private static PrintWriter logWriter;
@@ -87,7 +91,7 @@ public class Multitool {
     System.exit(0);
   }
 
-  private static void processLocalInformation() {
+  static void processLocalInformation() {
     String separator = FileSystems.getDefault().getSeparator();
     cwd = cleanPath(Paths.get("").toAbsolutePath().toString());
     localJava = cleanPath(System.getProperty("java.home") + separator + "bin" + separator + "java");
@@ -274,7 +278,7 @@ public class Multitool {
     return retVal;
   }
 
-  private static String cleanPath(String path) {
+  static String cleanPath(String path) {
     String retVal = path;
     String fs = "/";
     String bs = "\\\\";
