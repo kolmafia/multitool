@@ -89,14 +89,15 @@ class ToolDataTest {
   @Test
   public void itShouldOverrideToString() {
     ToolData newTd = new ToolData(toolName);
-    String expected = "ToolData for ToolName\n" +
-            "currentVersion=0\n" +
-            "latestVersion=0\n" +
-            "downloadURL=null\n" +
-            "needToDownload=false\n" +
-            "localJars=[]\n" +
-            "latestJarFile=null\n" +
-            "localModificationFound=false";
+    String expected =
+        "ToolData for ToolName\n"
+            + "currentVersion=0\n"
+            + "latestVersion=0\n"
+            + "downloadURL=null\n"
+            + "needToDownload=false\n"
+            + "localJars=[]\n"
+            + "latestJarFile=null\n"
+            + "localModificationFound=false";
     String got = newTd.toString();
     assertEquals(expected, got);
   }
