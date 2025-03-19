@@ -3,6 +3,7 @@ package us.kolmafia.multitool;
 import static java.nio.file.Files.copy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static us.kolmafia.multitool.Multitool.*;
 
@@ -33,8 +34,8 @@ class MultitoolTest {
     assertTrue(locals.isEmpty());
   }
 
-  private boolean validateDestination(Path dest) {
-    File dFile = dest.toFile();
+  private boolean validateDestination(Path destination) {
+    File dFile = destination.toFile();
     boolean retVal = dFile.exists();
     if (retVal) {
       retVal = dFile.isDirectory();
@@ -53,23 +54,23 @@ class MultitoolTest {
     Path source = new File(ROOT_LOCATION.toString() + "/FileResources").toPath();
     List<String> inDir = processDirectory("Kolmafia");
     assertTrue(inDir.isEmpty());
-    Path dest = ROOT_LOCATION.toPath();
-    assertTrue(validateDestination(dest));
-    String filez[] = source.toFile().list();
-    for (int i = 0; i < filez.length; i++) {
-      File tFile = new File(source + "/" +filez[i]);
+    Path destination = ROOT_LOCATION.toPath();
+    assertTrue(validateDestination(destination));
+    String[] files = source.toFile().list();
+    assertNotNull(files);
+    for (String file : files) {
+      File tFile = new File(source + "/" + file);
       try {
-        copy(tFile.toPath(), dest, StandardCopyOption.REPLACE_EXISTING);
+        copy(tFile.toPath(), destination, StandardCopyOption.REPLACE_EXISTING);
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
     }
-
     inDir = processDirectory("Kolmafia");
     assertEquals(2, inDir.size());
     assertTrue(inDir.contains("KolMafia-1066.jar"));
     assertTrue(inDir.contains("KolMafia-1066-M.jar"));
     assertFalse(inDir.contains("KolMafia-Latest.jar"));
-    // dlete copied
+    // delete copied
   }
 }
