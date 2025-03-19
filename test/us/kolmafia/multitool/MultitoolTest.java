@@ -49,7 +49,7 @@ class MultitoolTest {
   }
 
   @Test
-  public void itShouldFilesThatWerePutThere() {
+  public void itShouldFindFilesThatWerePutThere() {
     Path source = new File(ROOT_LOCATION.toString() + "/FileResources").toPath();
     List<String> inDir = processDirectory("Kolmafia");
     assertTrue(inDir.isEmpty());
@@ -57,7 +57,7 @@ class MultitoolTest {
     assertTrue(validateDestination(dest));
     String filez[] = source.toFile().list();
     for (int i = 0; i < filez.length; i++) {
-      File tFile = new File(filez[i]);
+      File tFile = new File(source + "/" +filez[i]);
       try {
         copy(tFile.toPath(), dest, StandardCopyOption.REPLACE_EXISTING);
       } catch (IOException e) {
