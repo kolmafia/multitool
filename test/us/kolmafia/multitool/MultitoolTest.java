@@ -78,7 +78,10 @@ class MultitoolTest {
     assertTrue(inDir.contains("KolMafia-1066-M.jar"));
     assertFalse(inDir.contains("KolMafia-Latest.jar"));
     for (File f : deleteWhenDone) {
-      f.delete();
+      boolean whoCares = f.delete();
+      if (!whoCares) {
+        System.out.println("Failed to delete " + f);
+      }
     }
     inDir = processDirectory("Kolmafia");
     assertTrue(inDir.isEmpty());
