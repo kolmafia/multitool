@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import org.junit.jupiter.api.BeforeAll;
@@ -52,6 +53,7 @@ class MultitoolTest {
   @Test
   public void itShouldFindFilesThatWerePutThere() {
     Path source = new File(ROOT_LOCATION.toString() + "/FileResources").toPath();
+    List<File> deleteWhenDone = new ArrayList<>();
     List<String> inDir = processDirectory("Kolmafia");
     assertTrue(inDir.isEmpty());
     Path destination = ROOT_LOCATION.toPath();
@@ -59,9 +61,13 @@ class MultitoolTest {
     String[] files = source.toFile().list();
     assertNotNull(files);
     for (String file : files) {
-      File tFile = new File(source + "/" + file);
+      File sFile = new File(source + "/" + file);
+      Path sPath = sFile.toPath();
+      File dFile = new File(destination + "/" + file);
+      deleteWhenDone.add(dFile);
+      Path dPath = dFile.toPath();
       try {
-        copy(tFile.toPath(), destination, StandardCopyOption.REPLACE_EXISTING);
+        copy(sPath, dPath, StandardCopyOption.REPLACE_EXISTING);
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
@@ -71,6 +77,10 @@ class MultitoolTest {
     assertTrue(inDir.contains("KolMafia-1066.jar"));
     assertTrue(inDir.contains("KolMafia-1066-M.jar"));
     assertFalse(inDir.contains("KolMafia-Latest.jar"));
-    // delete copied
+    for (File f : deleteWhenDone) {
+      f.delete();
+    }
+    inDir = processDirectory("Kolmafia");
+    assertTrue(inDir.isEmpty());
   }
 }
