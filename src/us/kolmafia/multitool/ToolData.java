@@ -35,7 +35,7 @@ public class ToolData {
   }
 
   public List<String> getLocalJars() {
-    return localJars;
+    return new ArrayList<>(localJars);
   }
 
   public void setLocalJars(List<String> localJars) {
