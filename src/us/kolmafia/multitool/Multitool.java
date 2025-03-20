@@ -1,5 +1,8 @@
 package us.kolmafia.multitool;
 
+import static us.kolmafia.multitool.Constants.KOLMAFIA_NAME;
+import static us.kolmafia.multitool.Constants.MULTITOOL_NAME;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -22,39 +25,33 @@ public class Multitool {
   static String cwd;
   private static String localJava;
   private static int localJavaVersion;
-  private static PrintWriter logWriter;
+  static PrintWriter logWriter;
+  static String logFileName;
 
   public static void main(String[] args) {
-    String logFileName =
-        new SimpleDateFormat("yyyyMMdd", Locale.US).format(new Date()) + "_multitool.log";
-    try {
-      logWriter = new PrintWriter(new BufferedWriter(new FileWriter(logFileName)));
-    } catch (IOException e) {
-      System.out.println("Can't open log file " + logFileName + " because " + e.getMessage());
-      System.exit(0);
-    }
+    initLogOrExit();
     processLocalInformation();
     int preferredJava = getPreferredJava();
-    ToolData multiData = processTool("multitool");
-    ToolData mafiaData = processTool("kolmafia");
+    ToolData multiData = processTool(MULTITOOL_NAME);
+    ToolData mafiaData = processTool(KOLMAFIA_NAME);
     if (multiData.isNeedToDownload()) {
       downloadAFile(multiData.getDownloadURL());
       logWriter.println("***");
-      logWriter.println("Downloaded newer version of multitool.");
+      logWriter.println("Downloaded newer version of " + MULTITOOL_NAME + ".");
       logWriter.println("***");
-      multiData = processTool("multitool");
+      multiData = processTool(MULTITOOL_NAME);
     }
     if (mafiaData.isNeedToDownload()) {
       downloadAFile(mafiaData.getDownloadURL());
       logWriter.println("***");
-      logWriter.println("Downloaded newer version of KoLmafia.");
+      logWriter.println("Downloaded newer version of " + KOLMAFIA_NAME + "'");
       logWriter.println("***");
-      mafiaData = processTool("kolmafia");
+      mafiaData = processTool(KOLMAFIA_NAME);
     }
     displayLocalInformation();
     logWriter.println("Preferred Java version: " + preferredJava);
     if (preferredJava > localJavaVersion) {
-      logWriter.println("Local Java too low for KoLmafia.  Running disabled.");
+      logWriter.println("Local Java too low for " + KOLMAFIA_NAME + ".  Running disabled.");
     }
     displayToolInformation(multiData);
     displayToolInformation(mafiaData);
@@ -267,5 +264,19 @@ public class Multitool {
     retVal = retVal.replaceAll(bs, fs);
     retVal = retVal.replaceAll(" ", bs + " ");
     return retVal;
+  }
+
+  public static void initLogOrExit() {
+    logFileName =
+        new SimpleDateFormat("yyyyMMdd", Locale.US).format(new Date())
+            + "_"
+            + MULTITOOL_NAME
+            + ".log";
+    try {
+      logWriter = new PrintWriter(new BufferedWriter(new FileWriter(logFileName)));
+    } catch (IOException e) {
+      System.out.println("Can't open log file " + logFileName + " because " + e.getMessage());
+      System.exit(0);
+    }
   }
 }

@@ -22,4 +22,6 @@ public class Constants {
           : USE_OSX_STYLE_DIRECTORIES
               ? new File(HOME_LOCATION, "Library/Application Support/KoLmafia")
               : USE_LINUX_STYLE_DIRECTORIES ? new File(HOME_LOCATION, ".kolmafia") : BASE_LOCATION;
+  public static final String MULTITOOL_NAME = "multitool";
+  public static final String KOLMAFIA_NAME = "KoLmafia";
 }
