@@ -23,11 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 class MultitoolTest {
-  private static final Logger log = LoggerFactory.getLogger(MultitoolTest.class);
 
   @BeforeAll
   static void beforeAll() {
