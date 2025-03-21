@@ -17,7 +17,9 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
 
@@ -266,6 +268,10 @@ public class Multitool {
     return retVal;
   }
 
+  /**
+   * This opens the log file. Since the log file is potentially the only communication with the
+   * user, a detectable failure to open the log file is a fatal error and will stop execution.
+   */
   public static void initLogOrExit() {
     logFileName =
         new SimpleDateFormat("yyyyMMdd", Locale.US).format(new Date())
@@ -274,6 +280,10 @@ public class Multitool {
             + ".log";
     try {
       logWriter = new PrintWriter(new BufferedWriter(new FileWriter(logFileName)));
+      Calendar timestamp = new GregorianCalendar();
+      SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd_HH_mmZ");
+      String tNow = dateFormat.format(timestamp.getTime());
+      logWriter.println("Log opened at " + tNow);
     } catch (IOException e) {
       System.out.println("Can't open log file " + logFileName + " because " + e.getMessage());
       System.exit(0);
