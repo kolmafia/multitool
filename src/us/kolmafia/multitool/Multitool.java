@@ -1,5 +1,8 @@
 package us.kolmafia.multitool;
 
+import static us.kolmafia.multitool.Constants.KOLMAFIA_NAME;
+import static us.kolmafia.multitool.Constants.MULTITOOL_NAME;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -14,65 +17,43 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
 
 public class Multitool {
-  /*
-  The code setting ROOT_LOCATION was lifted from KoLConstants.java and the dependency on
-  UtilityConstants.java eliminated by copying code from there.
-   */
-  public static final File BASE_LOCATION =
-      new File(System.getProperty("user.dir")).getAbsoluteFile();
-  public static final File HOME_LOCATION =
-      new File(System.getProperty("user.home")).getAbsoluteFile();
-  public static final boolean USE_OSX_STYLE_DIRECTORIES =
-      System.getProperty("os.name").startsWith("Mac");
-  public static final boolean USE_LINUX_STYLE_DIRECTORIES =
-      USE_OSX_STYLE_DIRECTORIES && !System.getProperty("os.name").startsWith("Win");
-  public static final File ROOT_LOCATION =
-      Boolean.getBoolean("useCWDasROOT")
-          ? BASE_LOCATION
-          : USE_OSX_STYLE_DIRECTORIES
-              ? new File(HOME_LOCATION, "Library/Application Support/KoLmafia")
-              : USE_LINUX_STYLE_DIRECTORIES ? new File(HOME_LOCATION, ".kolmafia") : BASE_LOCATION;
   static String cwd;
   private static String localJava;
   private static int localJavaVersion;
-  private static PrintWriter logWriter;
+  static PrintWriter logWriter;
+  static String logFileName;
 
   public static void main(String[] args) {
-    String logFileName =
-        new SimpleDateFormat("yyyyMMdd", Locale.US).format(new Date()) + "_multitool.log";
-    try {
-      logWriter = new PrintWriter(new BufferedWriter(new FileWriter(logFileName)));
-    } catch (IOException e) {
-      System.out.println("Can't open log file " + logFileName + " because " + e.getMessage());
-      System.exit(0);
-    }
+    initLogOrExit();
     processLocalInformation();
     int preferredJava = getPreferredJava();
-    ToolData multiData = processTool("multitool");
-    ToolData mafiaData = processTool("kolmafia");
+    ToolData multiData = processTool(MULTITOOL_NAME);
+    ToolData mafiaData = processTool(KOLMAFIA_NAME);
     if (multiData.isNeedToDownload()) {
       downloadAFile(multiData.getDownloadURL());
       logWriter.println("***");
-      logWriter.println("Downloaded newer version of multitool.");
+      logWriter.println("Downloaded newer version of " + MULTITOOL_NAME + ".");
       logWriter.println("***");
-      multiData = processTool("multitool");
+      multiData = processTool(MULTITOOL_NAME);
     }
     if (mafiaData.isNeedToDownload()) {
       downloadAFile(mafiaData.getDownloadURL());
       logWriter.println("***");
-      logWriter.println("Downloaded newer version of KoLmafia.");
+      logWriter.println("Downloaded newer version of " + KOLMAFIA_NAME + "'");
       logWriter.println("***");
-      mafiaData = processTool("kolmafia");
+      mafiaData = processTool(KOLMAFIA_NAME);
     }
     displayLocalInformation();
     logWriter.println("Preferred Java version: " + preferredJava);
     if (preferredJava > localJavaVersion) {
-      logWriter.println("Local Java too low for KoLmafia.  Running disabled.");
+      logWriter.println("Local Java too low for " + KOLMAFIA_NAME + ".  Running disabled.");
     }
     displayToolInformation(multiData);
     displayToolInformation(mafiaData);
@@ -285,5 +266,27 @@ public class Multitool {
     retVal = retVal.replaceAll(bs, fs);
     retVal = retVal.replaceAll(" ", bs + " ");
     return retVal;
+  }
+
+  /**
+   * This opens the log file. Since the log file is potentially the only communication with the
+   * user, a detectable failure to open the log file is a fatal error and will stop execution.
+   */
+  public static void initLogOrExit() {
+    logFileName =
+        new SimpleDateFormat("yyyyMMdd", Locale.US).format(new Date())
+            + "_"
+            + MULTITOOL_NAME
+            + ".log";
+    try {
+      logWriter = new PrintWriter(new BufferedWriter(new FileWriter(logFileName)));
+      Calendar timestamp = new GregorianCalendar();
+      SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd_HH_mmZ");
+      String tNow = dateFormat.format(timestamp.getTime());
+      logWriter.println("Log opened at " + tNow);
+    } catch (IOException e) {
+      System.out.println("Can't open log file " + logFileName + " because " + e.getMessage());
+      System.exit(0);
+    }
   }
 }

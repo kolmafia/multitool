@@ -5,7 +5,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static us.kolmafia.multitool.Multitool.*;
+import static us.kolmafia.multitool.Constants.KOLMAFIA_NAME;
+import static us.kolmafia.multitool.Constants.ROOT_LOCATION;
+import static us.kolmafia.multitool.Multitool.cleanPath;
+import static us.kolmafia.multitool.Multitool.cwd;
+import static us.kolmafia.multitool.Multitool.initLogOrExit;
+import static us.kolmafia.multitool.Multitool.logFileName;
+import static us.kolmafia.multitool.Multitool.logWriter;
+import static us.kolmafia.multitool.Multitool.processDirectory;
+import static us.kolmafia.multitool.Multitool.processLocalInformation;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,11 +21,11 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 class MultitoolTest {
+
   @BeforeAll
   static void beforeAll() {
     processLocalInformation();
@@ -31,7 +39,7 @@ class MultitoolTest {
 
   @Test
   public void itShouldFindNoFiles() {
-    List<String> locals = processDirectory("KoLMafia");
+    List<String> locals = processDirectory(KOLMAFIA_NAME);
     assertTrue(locals.isEmpty());
   }
 
@@ -42,9 +50,6 @@ class MultitoolTest {
       retVal = dFile.isDirectory();
       if (retVal) {
         retVal = dFile.canWrite();
-        if (retVal) {
-          retVal = (Objects.requireNonNull(dFile.list()).length == 1);
-        }
       }
     }
     return retVal;
@@ -52,9 +57,10 @@ class MultitoolTest {
 
   @Test
   public void itShouldFindFilesThatWerePutThere() {
+    initLogOrExit();
     Path source = new File(ROOT_LOCATION.toString() + "/FileResources").toPath();
     List<File> deleteWhenDone = new ArrayList<>();
-    List<String> inDir = processDirectory("Kolmafia");
+    List<String> inDir = processDirectory(KOLMAFIA_NAME);
     assertTrue(inDir.isEmpty());
     Path destination = ROOT_LOCATION.toPath();
     assertTrue(validateDestination(destination));
@@ -72,7 +78,7 @@ class MultitoolTest {
         throw new RuntimeException(e);
       }
     }
-    inDir = processDirectory("Kolmafia");
+    inDir = processDirectory(KOLMAFIA_NAME);
     assertEquals(2, inDir.size());
     assertTrue(inDir.contains("KolMafia-1066.jar"));
     assertTrue(inDir.contains("KolMafia-1066-M.jar"));
@@ -83,7 +89,17 @@ class MultitoolTest {
         System.out.println("Failed to delete " + f);
       }
     }
-    inDir = processDirectory("Kolmafia");
+    inDir = processDirectory(KOLMAFIA_NAME);
     assertTrue(inDir.isEmpty());
+    cleanUpLog();
+  }
+
+  public void cleanUpLog() {
+    logWriter.flush();
+    logWriter.close();
+    boolean whoCares = new File(logFileName).delete();
+    if (!whoCares) {
+      System.out.println("Failed to delete " + logFileName);
+    }
   }
 }

@@ -59,19 +59,6 @@ class ToolDataTest {
 
   @Test
   public void itShouldPreserveLatestJarFile() {
-    /*
-    Need to understand where this will be.  May need to establish place for tests to create files
-     */
-    File fauxFile = new File("NoName");
-    td.setLatestJarFile(fauxFile);
-    assertEquals(fauxFile, td.getLatestJarFile());
-  }
-
-  @Test
-  public void itShouldPreserveLatestJars() {
-    /*
-    Need to understand where this will be.  May need to establish place for tests to create files
-     */
     File fauxFile = new File("NoName");
     td.setLatestJarFile(fauxFile);
     assertEquals(fauxFile, td.getLatestJarFile());
