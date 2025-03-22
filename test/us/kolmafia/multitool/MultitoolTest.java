@@ -5,10 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static us.kolmafia.multitool.Constants.KOLMAFIA_NAME;
+import static us.kolmafia.multitool.Constants.MULTITOOL_NAME;
 import static us.kolmafia.multitool.Constants.ROOT_LOCATION;
 import static us.kolmafia.multitool.Multitool.cleanPath;
 import static us.kolmafia.multitool.Multitool.cwd;
+import static us.kolmafia.multitool.Multitool.getVersionFromInputStream;
 import static us.kolmafia.multitool.Multitool.initLogOrExit;
 import static us.kolmafia.multitool.Multitool.logFileName;
 import static us.kolmafia.multitool.Multitool.logWriter;
@@ -16,6 +19,8 @@ import static us.kolmafia.multitool.Multitool.processDirectory;
 import static us.kolmafia.multitool.Multitool.processLocalInformation;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -101,5 +106,17 @@ class MultitoolTest {
     if (!whoCares) {
       System.out.println("Failed to delete " + logFileName);
     }
+  }
+
+  @Test
+  public void itShouldGetVersion() {
+    String name = ROOT_LOCATION.toString() + "/FileResources/latest" + MULTITOOL_NAME + ".json";
+    FileInputStream fs = null;
+    try {
+      fs = new FileInputStream(name);
+    } catch (FileNotFoundException e) {
+      fail(e.getMessage());
+    }
+    assertEquals(63, getVersionFromInputStream(fs));
   }
 }
