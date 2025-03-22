@@ -227,21 +227,21 @@ public class Multitool {
           if ((ptr = is.read()) == -1) break;
         } catch (IOException e) {
           System.out.println(
-              "Unexpected error reading from remote inout stream: " + e.getMessage());
+              "Unexpected error reading from remote input stream: " + e.getMessage());
           return 0;
         }
         buffer.append((char) ptr);
       }
       String dq = "\"";
       String js = buffer.toString();
-      String findMe = dq + "name" + dq + ":";
+      String findMe = dq + "name" + dq + ": ";
       int i = js.indexOf(findMe);
-      js = js.substring(i + findMe.length());
-      i = js.indexOf(",");
-      js = js.substring(0, i);
-      js = js.replaceAll("\"", "");
-      retVal = js;
-      return Integer.parseInt(retVal);
+      String ijs = js.substring(i + findMe.length());
+      i = ijs.indexOf(",");
+      String kjs = ijs.substring(0, i);
+      retVal = kjs.replaceAll("\"", "");
+      int xxx = Integer.parseInt(retVal);
+      return xxx;
     }
   }
 

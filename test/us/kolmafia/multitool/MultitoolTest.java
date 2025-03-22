@@ -109,7 +109,7 @@ class MultitoolTest {
   }
 
   @Test
-  public void itShouldGetVersion() {
+  public void itShouldGetMultitoolVersion() {
     String name = ROOT_LOCATION.toString() + "/FileResources/latest" + MULTITOOL_NAME + ".json";
     FileInputStream fs = null;
     try {
@@ -118,5 +118,17 @@ class MultitoolTest {
       fail(e.getMessage());
     }
     assertEquals(63, getVersionFromInputStream(fs));
+  }
+
+  @Test
+  public void itShouldGetKoLmafiaVersion() {
+    String name = ROOT_LOCATION.toString() + "/FileResources/latest" + KOLMAFIA_NAME + ".json";
+    FileInputStream fs = null;
+    try {
+      fs = new FileInputStream(name);
+    } catch (FileNotFoundException e) {
+      fail(e.getMessage());
+    }
+    assertEquals(28465, getVersionFromInputStream(fs));
   }
 }
