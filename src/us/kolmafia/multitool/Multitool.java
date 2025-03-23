@@ -9,6 +9,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.FileSystems;
@@ -22,6 +23,9 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
 
 public class Multitool {
   static String cwd;
@@ -219,7 +223,6 @@ public class Multitool {
    */
   static int getVersionFromInputStream(InputStream is) {
     {
-      String retVal;
       StringBuilder buffer = new StringBuilder();
       int ptr;
       while (true) {
@@ -232,16 +235,11 @@ public class Multitool {
         }
         buffer.append((char) ptr);
       }
-      String dq = "\"";
-      String js = buffer.toString();
-      String findMe = dq + "name" + dq + ": ";
-      int i = js.indexOf(findMe);
-      String ijs = js.substring(i + findMe.length());
-      i = ijs.indexOf(",");
-      String kjs = ijs.substring(0, i);
-      retVal = kjs.replaceAll("\"", "");
-      int xxx = Integer.parseInt(retVal);
-      return xxx;
+      JsonReader reader = Json.createReader(new StringReader(buffer.toString()));
+      JsonObject jsonObject = reader.readObject();
+      String name = jsonObject.getString("name");
+      reader.close();
+      return Integer.parseInt(name);
     }
   }
 
