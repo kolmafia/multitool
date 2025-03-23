@@ -9,6 +9,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.FileSystems;
@@ -22,6 +23,9 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
 
 public class Multitool {
   static String cwd;
@@ -193,39 +197,50 @@ public class Multitool {
 
   private static int getLatestReleaseVersion(String tool) {
     String rel = "https://api.github.com/repos/kolmafia/" + tool + "/releases/latest";
-    String retVal;
-    StringBuilder buffer = new StringBuilder();
     URL url;
     try {
       url = new URL(rel);
     } catch (MalformedURLException e) {
-      throw new RuntimeException(e);
+      System.out.println("Problem accessing releases repo for " + tool + ": " + e.getMessage());
+      return 0;
     }
     try (InputStream is = url.openStream()) {
+      int version = getVersionFromInputStream(is);
+      is.close();
+      return version;
+    } catch (IOException e) {
+      System.out.println("Problem opening or closing " + url + ": " + e.getMessage());
+      return 0;
+    }
+  }
+
+  /**
+   * Uses an opened input stream to determine the latest version of a tool in a remote repository.
+   * Caller needs to Closes the input stream.
+   *
+   * @param is Successfully opened input stream to remote repository.
+   * @return latest version in repository or zero
+   */
+  static int getVersionFromInputStream(InputStream is) {
+    {
+      StringBuilder buffer = new StringBuilder();
       int ptr;
       while (true) {
         try {
           if ((ptr = is.read()) == -1) break;
         } catch (IOException e) {
-          System.out.println("Unexpected error reading from " + url + ": " + e.getMessage());
+          System.out.println(
+              "Unexpected error reading from remote input stream: " + e.getMessage());
           return 0;
         }
         buffer.append((char) ptr);
       }
-    } catch (IOException e) {
-      System.out.println("Problem opening " + url + ": " + e.getMessage());
-      return 0;
+      JsonReader reader = Json.createReader(new StringReader(buffer.toString()));
+      JsonObject jsonObject = reader.readObject();
+      String name = jsonObject.getString("name");
+      reader.close();
+      return Integer.parseInt(name);
     }
-    String dq = "\"";
-    String js = buffer.toString();
-    String findMe = dq + "name" + dq + ":";
-    int i = js.indexOf(findMe);
-    js = js.substring(i + findMe.length());
-    i = js.indexOf(",");
-    js = js.substring(0, i);
-    js = js.replaceAll("\"", "");
-    retVal = js;
-    return Integer.parseInt(retVal);
   }
 
   static List<String> processDirectory(String nameRoot) {
