@@ -216,7 +216,7 @@ public class Multitool {
 
   /**
    * Uses an opened input stream to determine the latest version of a tool in a remote repository.
-   * Caller needs to Closes the input stream.
+   * Caller needs to close the input stream.
    *
    * @param is Successfully opened input stream to remote repository.
    * @return latest version in repository or zero

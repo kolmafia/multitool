@@ -50,14 +50,7 @@ class MultitoolTest {
 
   private boolean validateDestination(Path destination) {
     File dFile = destination.toFile();
-    boolean retVal = dFile.exists();
-    if (retVal) {
-      retVal = dFile.isDirectory();
-      if (retVal) {
-        retVal = dFile.canWrite();
-      }
-    }
-    return retVal;
+      return dFile.exists() && dFile.isDirectory() && dFile.canWrite();
   }
 
   @Test
@@ -80,7 +73,7 @@ class MultitoolTest {
       try {
         copy(sPath, dPath, StandardCopyOption.REPLACE_EXISTING);
       } catch (IOException e) {
-        throw new RuntimeException(e);
+        fail(e.getMessage());
       }
     }
     inDir = processDirectory(KOLMAFIA_NAME);
