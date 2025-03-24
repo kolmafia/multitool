@@ -11,6 +11,7 @@ import static us.kolmafia.multitool.Constants.MULTITOOL_NAME;
 import static us.kolmafia.multitool.Constants.ROOT_LOCATION;
 import static us.kolmafia.multitool.Multitool.cleanPath;
 import static us.kolmafia.multitool.Multitool.cwd;
+import static us.kolmafia.multitool.Multitool.getVersionDataFromFilename;
 import static us.kolmafia.multitool.Multitool.getVersionFromInputStream;
 import static us.kolmafia.multitool.Multitool.initLogOrExit;
 import static us.kolmafia.multitool.Multitool.logFileName;
@@ -28,6 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 class MultitoolTest {
 
@@ -50,7 +53,7 @@ class MultitoolTest {
 
   private boolean validateDestination(Path destination) {
     File dFile = destination.toFile();
-      return dFile.exists() && dFile.isDirectory() && dFile.canWrite();
+    return dFile.exists() && dFile.isDirectory() && dFile.canWrite();
   }
 
   @Test
@@ -123,5 +126,23 @@ class MultitoolTest {
       fail(e.getMessage());
     }
     assertEquals(28465, getVersionFromInputStream(fs));
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+    "kolmafia, kolmafia, 0, false",
+    "kolmafia-123, kolmafia, 0, false",
+    "kolmafia123.jar, kolmafia, 0, false",
+    "kolmafia-123.jar, kolmafia, 123, false",
+    "kolmafia-123-m.jar, kolmafia, 123, true",
+    "kolmafia-123-.jar, kolmafia, 0, false",
+    "kolmafia-latest.jar, kolmafia, 0, false",
+    "notatool-123.jar, kolmafia, 0, false"
+  })
+  public void itShouldGetVersions(
+      String jarName, String toolName, int expectedVersion, boolean expectedmod) {
+    VersionData vd = getVersionDataFromFilename(jarName, toolName);
+    assertEquals(expectedVersion, vd.getVersion());
+    assertEquals(expectedmod, vd.isModified());
   }
 }

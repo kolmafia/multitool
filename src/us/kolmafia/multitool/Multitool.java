@@ -148,7 +148,7 @@ public class Multitool {
       String jarName = systemJarName.toLowerCase();
       VersionData verDat = getVersionDataFromFilename(jarName, toolName);
       runMe = systemJarName;
-      retVal.setCurrentVersion(verDat.getVersion());
+      localVersion = verDat.getVersion();
       retVal.setLocalModificationFound(verDat.isModified());
     }
     retVal.setCurrentVersion(localVersion);
@@ -298,11 +298,18 @@ public class Multitool {
     }
   }
 
-  static VersionData getVersionDataFromFilename(String jarName, String toolName )
-  {
+  static VersionData getVersionDataFromFilename(String jarName, String toolName) {
+    VersionData noResult = new VersionData(0, false);
+    jarName = jarName.toLowerCase();
+    toolName = toolName.toLowerCase();
+    String dotJar = ".jar";
+    if (!jarName.startsWith(toolName)) return noResult;
+    if (!jarName.endsWith(dotJar)) return noResult;
     boolean mod = false;
     int i = jarName.indexOf(toolName);
-    String hold = jarName.substring(i + toolName.length() + 1);
+    String hold = jarName.substring(i + toolName.length());
+    if (!hold.startsWith("-")) return noResult;
+    hold = hold.substring(1);
     i = hold.indexOf(".jar");
     hold = hold.substring(0, i);
     if (hold.contains("-m")) {
@@ -310,6 +317,13 @@ public class Multitool {
       hold = hold.substring(0, i);
       mod = true;
     }
-    return new VersionData(Integer.parseInt(hold), mod);
+    boolean isNumeric = hold.chars().allMatch(Character::isDigit);
+    if (!isNumeric) return noResult;
+    try {
+      int verVal = Integer.parseInt(hold);
+      return new VersionData(verVal, mod);
+    } catch (NumberFormatException e) {
+      return noResult;
+    }
   }
 }
