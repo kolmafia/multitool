@@ -146,17 +146,10 @@ public class Multitool {
     int localVersion = 0;
     for (String systemJarName : locals) {
       String jarName = systemJarName.toLowerCase();
-      int i = jarName.indexOf(toolName);
-      String hold = jarName.substring(i + toolName.length() + 1);
-      i = hold.indexOf(".jar");
-      hold = hold.substring(0, i);
-      if (hold.contains("-m")) {
-        i = hold.indexOf("-m");
-        hold = hold.substring(0, i);
-        retVal.setLocalModificationFound(true);
-      }
+      VersionData verDat = getVersionDataFromFilename(jarName, toolName);
       runMe = systemJarName;
-      localVersion = Integer.parseInt(hold);
+      retVal.setCurrentVersion(verDat.getVersion());
+      retVal.setLocalModificationFound(verDat.isModified());
     }
     retVal.setCurrentVersion(localVersion);
     retVal.setNeedToDownload(localVersion < version);
@@ -303,5 +296,20 @@ public class Multitool {
       System.out.println("Can't open log file " + logFileName + " because " + e.getMessage());
       System.exit(0);
     }
+  }
+
+  static VersionData getVersionDataFromFilename(String jarName, String toolName )
+  {
+    boolean mod = false;
+    int i = jarName.indexOf(toolName);
+    String hold = jarName.substring(i + toolName.length() + 1);
+    i = hold.indexOf(".jar");
+    hold = hold.substring(0, i);
+    if (hold.contains("-m")) {
+      i = hold.indexOf("-m");
+      hold = hold.substring(0, i);
+      mod = true;
+    }
+    return new VersionData(Integer.parseInt(hold), mod);
   }
 }
