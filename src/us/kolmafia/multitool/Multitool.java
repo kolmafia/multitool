@@ -146,17 +146,10 @@ public class Multitool {
     int localVersion = 0;
     for (String systemJarName : locals) {
       String jarName = systemJarName.toLowerCase();
-      int i = jarName.indexOf(toolName);
-      String hold = jarName.substring(i + toolName.length() + 1);
-      i = hold.indexOf(".jar");
-      hold = hold.substring(0, i);
-      if (hold.contains("-m")) {
-        i = hold.indexOf("-m");
-        hold = hold.substring(0, i);
-        retVal.setLocalModificationFound(true);
-      }
+      VersionData verDat = getVersionDataFromFilename(jarName, toolName);
       runMe = systemJarName;
-      localVersion = Integer.parseInt(hold);
+      localVersion = verDat.getVersion();
+      retVal.setLocalModificationFound(verDat.isModified());
     }
     retVal.setCurrentVersion(localVersion);
     retVal.setNeedToDownload(localVersion < version);
@@ -216,7 +209,7 @@ public class Multitool {
 
   /**
    * Uses an opened input stream to determine the latest version of a tool in a remote repository.
-   * Caller needs to Closes the input stream.
+   * Caller needs to close the input stream.
    *
    * @param is Successfully opened input stream to remote repository.
    * @return latest version in repository or zero
@@ -302,6 +295,35 @@ public class Multitool {
     } catch (IOException e) {
       System.out.println("Can't open log file " + logFileName + " because " + e.getMessage());
       System.exit(0);
+    }
+  }
+
+  static VersionData getVersionDataFromFilename(String jarName, String toolName) {
+    VersionData noResult = new VersionData(0, false);
+    jarName = jarName.toLowerCase();
+    toolName = toolName.toLowerCase();
+    String dotJar = ".jar";
+    if (!jarName.startsWith(toolName)) return noResult;
+    if (!jarName.endsWith(dotJar)) return noResult;
+    boolean mod = false;
+    int i = jarName.indexOf(toolName);
+    String hold = jarName.substring(i + toolName.length());
+    if (!hold.startsWith("-")) return noResult;
+    hold = hold.substring(1);
+    i = hold.indexOf(".jar");
+    hold = hold.substring(0, i);
+    if (hold.contains("-m")) {
+      i = hold.indexOf("-m");
+      hold = hold.substring(0, i);
+      mod = true;
+    }
+    boolean isNumeric = hold.chars().allMatch(Character::isDigit);
+    if (!isNumeric) return noResult;
+    try {
+      int verVal = Integer.parseInt(hold);
+      return new VersionData(verVal, mod);
+    } catch (NumberFormatException e) {
+      return noResult;
     }
   }
 }
