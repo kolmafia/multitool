@@ -11,6 +11,7 @@ import static us.kolmafia.multitool.Constants.MULTITOOL_NAME;
 import static us.kolmafia.multitool.Constants.ROOT_LOCATION;
 import static us.kolmafia.multitool.Multitool.cleanPath;
 import static us.kolmafia.multitool.Multitool.cwd;
+import static us.kolmafia.multitool.Multitool.getLocalJavaVersion;
 import static us.kolmafia.multitool.Multitool.getVersionDataFromFilename;
 import static us.kolmafia.multitool.Multitool.getVersionFromInputStream;
 import static us.kolmafia.multitool.Multitool.initLogOrExit;
@@ -156,5 +157,12 @@ class MultitoolTest {
   @Test
   public void itShouldCheckNull() {
     assertFalse(isAllDigits(null));
+  }
+
+  @Test
+  public void itShouldGetSameJavaVersionUsingAlternative() {
+    Runtime.Version runtimeVersion = Runtime.version();
+    String version = String.valueOf(runtimeVersion.version().get(0));
+    assertEquals(version, String.valueOf(getLocalJavaVersion()));
   }
 }

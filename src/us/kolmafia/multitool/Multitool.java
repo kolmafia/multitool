@@ -185,7 +185,17 @@ public class Multitool {
     Runtime.getRuntime().exec(command);
   }
 
-  private static int getLocalJavaVersion() {
+  /**
+   * For Java 9 and beyond the Java version number will begin with X.Y.Z with X, Y and Z being
+   * positive integers representing Major release number, Minor release number and Patch release
+   * number. Since this code is not intended to work on anything less that Java 11 only that format
+   * will be expected and only the major version number reported. Note that an alternative
+   * implementation for Java 9 and beyond is to use Runtime.version() instead of the system
+   * property.
+   *
+   * @return Major java version of current JRE or zero
+   */
+  static int getLocalJavaVersion() {
     String locStr = System.getProperty("java.version");
     int i = locStr.indexOf(".");
     String num = locStr.substring(0, i);
