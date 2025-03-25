@@ -36,6 +36,88 @@ public class Multitool {
 
   public static void main(String[] args) {
     initLogOrExit();
+    localJavaVersion = getLocalJavaVersion();
+    String separator = FileSystems.getDefault().getSeparator();
+    localJava = cleanPath(System.getProperty("java.home") + separator + "bin" + separator + "java");
+    cwd = cleanPath(Paths.get("").toAbsolutePath().toString());
+    int localToolVersion = getLocalVersion(MULTITOOL_NAME);
+    int remoteToolVersion = getLatestReleaseVersion(MULTITOOL_NAME);
+    if (localToolVersion < remoteToolVersion) {
+      String toolName = MULTITOOL_NAME;
+      int version = remoteToolVersion;
+      String remoteFile =
+          "https://github.com/kolmafia/"
+              + toolName
+              + "/releases/download/r"
+              + version
+              + "/"
+              + toolName
+              + "-"
+              + version
+              + ".jar";
+      downloadAFile(remoteFile);
+      startNewJVMAndExit(toolName, version);
+    }
+  }
+
+  private static void startNewJVMAndExit(String toolName, int version) {
+    String path = localJava;
+    String jar = toolName + "-" + version + ".jar";
+    String command = path + ".exe";
+    command = "java";
+    // This works because Java is in Path.  Need alternatve or find out who is running current
+    // process
+    String args = "-jar " + jar;
+    logWriter.println("Starting " + command + " " + args);
+    cleanUpLog();
+    ProcessBuilder pb = new ProcessBuilder(command, args);
+    pb.directory(null);
+    try {
+      pb.start();
+    } catch (IOException e) {
+      System.out.println("Problem stating " + jar + ": " + e.getMessage());
+    }
+    System.exit(0);
+  }
+
+  public static void cleanUpLog() {
+    logWriter.println("Log closed at " + formattedTimeNow());
+    logWriter.flush();
+    logWriter.close();
+  }
+
+  /**
+   * Looks for files that satisfy the naming convention in the current working directory. Extracts
+   * the version numbers and returns the highest one unless there are no files satisfying the naming
+   * convention in which case zero is returned.
+   *
+   * @param toolName Tool name used a prefix
+   * @return Highest version of tool or zero
+   */
+  private static int getLocalVersion(String toolName) {
+    int retVal = 0;
+    try {
+      File f = new File(cwd);
+      String[] files = f.list();
+      if (files != null) {
+        for (String file : files) {
+          VersionData verDat = getVersionDataFromFilename(file, toolName);
+          int candidate = verDat.getVersion();
+          if (candidate > retVal) {
+            retVal = candidate;
+          }
+        }
+      }
+    } catch (Exception e) {
+      String message = "Problem creating " + cwd + " because " + e.getMessage();
+      System.out.println(message);
+      logWriter.println(message);
+    }
+    return retVal;
+  }
+
+  public static void Oldmain(String[] args) {
+    initLogOrExit();
     processLocalInformation();
     int preferredJava = getPreferredJava();
     ToolData multiData = processTool(MULTITOOL_NAME);
@@ -309,15 +391,19 @@ public class Multitool {
             + MULTITOOL_NAME
             + ".log";
     try {
-      logWriter = new PrintWriter(new BufferedWriter(new FileWriter(logFileName)));
-      Calendar timestamp = new GregorianCalendar();
-      SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd_HH_mmZ");
-      String tNow = dateFormat.format(timestamp.getTime());
+      logWriter = new PrintWriter(new BufferedWriter(new FileWriter(logFileName, true)));
+      String tNow = formattedTimeNow();
       logWriter.println("Log opened at " + tNow);
     } catch (IOException e) {
       System.out.println("Can't open log file " + logFileName + " because " + e.getMessage());
       System.exit(0);
     }
+  }
+
+  public static String formattedTimeNow() {
+    Calendar timestamp = new GregorianCalendar();
+    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd_HH_mmZ");
+    return dateFormat.format(timestamp.getTime());
   }
 
   static VersionData getVersionDataFromFilename(String jarName, String toolName) {

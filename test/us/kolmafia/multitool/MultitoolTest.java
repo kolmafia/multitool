@@ -11,6 +11,7 @@ import static us.kolmafia.multitool.Constants.MULTITOOL_NAME;
 import static us.kolmafia.multitool.Constants.ROOT_LOCATION;
 import static us.kolmafia.multitool.Multitool.cleanPath;
 import static us.kolmafia.multitool.Multitool.cwd;
+import static us.kolmafia.multitool.Multitool.formattedTimeNow;
 import static us.kolmafia.multitool.Multitool.getLocalJavaVersion;
 import static us.kolmafia.multitool.Multitool.getVersionDataFromFilename;
 import static us.kolmafia.multitool.Multitool.getVersionFromInputStream;
@@ -94,16 +95,21 @@ class MultitoolTest {
     }
     inDir = processDirectory(KOLMAFIA_NAME);
     assertTrue(inDir.isEmpty());
-    cleanUpLog();
+    cleanUpAndDeleteLog();
   }
 
-  public void cleanUpLog() {
-    logWriter.flush();
-    logWriter.close();
+  public void cleanUpAndDeleteLog() {
+    cleanUpLog();
     boolean whoCares = new File(logFileName).delete();
     if (!whoCares) {
       System.out.println("Failed to delete " + logFileName);
     }
+  }
+
+  public void cleanUpLog() {
+    logWriter.println("Log closed at " + formattedTimeNow());
+    logWriter.flush();
+    logWriter.close();
   }
 
   @Test
