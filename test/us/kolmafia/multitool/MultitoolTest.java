@@ -14,6 +14,7 @@ import static us.kolmafia.multitool.Multitool.cwd;
 import static us.kolmafia.multitool.Multitool.getVersionDataFromFilename;
 import static us.kolmafia.multitool.Multitool.getVersionFromInputStream;
 import static us.kolmafia.multitool.Multitool.initLogOrExit;
+import static us.kolmafia.multitool.Multitool.isAllDigits;
 import static us.kolmafia.multitool.Multitool.logFileName;
 import static us.kolmafia.multitool.Multitool.logWriter;
 import static us.kolmafia.multitool.Multitool.processDirectory;
@@ -137,12 +138,23 @@ class MultitoolTest {
     "kolmafia-123-m.jar, kolmafia, 123, true",
     "kolmafia-123-.jar, kolmafia, 0, false",
     "kolmafia-latest.jar, kolmafia, 0, false",
-    "notatool-123.jar, kolmafia, 0, false"
+    "notATool-123.jar, kolmafia, 0, false"
   })
   public void itShouldGetVersions(
-      String jarName, String toolName, int expectedVersion, boolean expectedmod) {
+      String jarName, String toolName, int expectedVersion, boolean expectedMod) {
     VersionData vd = getVersionDataFromFilename(jarName, toolName);
     assertEquals(expectedVersion, vd.getVersion());
-    assertEquals(expectedmod, vd.isModified());
+    assertEquals(expectedMod, vd.isModified());
+  }
+
+  @ParameterizedTest
+  @CsvSource({"abc, false", "123, true", "-123, false", "9999999, true"})
+  public void itShouldCheckDigits(String checkMe, boolean expected) {
+    assertEquals(expected, isAllDigits(checkMe));
+  }
+
+  @Test
+  public void itShouldCheckNull() {
+    assertFalse(isAllDigits(null));
   }
 }

@@ -121,7 +121,11 @@ public class Multitool {
     i = js.indexOf("&");
     js = js.substring(0, i);
     retVal = js;
-    return Integer.parseInt(retVal);
+    if (isAllDigits(retVal)) {
+      return Integer.parseInt(retVal);
+    } else {
+      return 0;
+    }
   }
 
   private static ToolData processTool(String toolName) {
@@ -185,7 +189,11 @@ public class Multitool {
     String locStr = System.getProperty("java.version");
     int i = locStr.indexOf(".");
     String num = locStr.substring(0, i);
-    return Integer.parseInt(num);
+    if (isAllDigits(num)) {
+      return Integer.parseInt(num);
+    } else {
+      return 0;
+    }
   }
 
   private static int getLatestReleaseVersion(String tool) {
@@ -232,7 +240,11 @@ public class Multitool {
       JsonObject jsonObject = reader.readObject();
       String name = jsonObject.getString("name");
       reader.close();
-      return Integer.parseInt(name);
+      if (isAllDigits(name)) {
+        return Integer.parseInt(name);
+      } else {
+        return 0;
+      }
     }
   }
 
@@ -317,13 +329,22 @@ public class Multitool {
       hold = hold.substring(0, i);
       mod = true;
     }
-    boolean isNumeric = hold.chars().allMatch(Character::isDigit);
-    if (!isNumeric) return noResult;
-    try {
-      int verVal = Integer.parseInt(hold);
-      return new VersionData(verVal, mod);
-    } catch (NumberFormatException e) {
-      return noResult;
+    if (!isAllDigits(hold)) return noResult;
+    int verVal = Integer.parseInt(hold);
+    return new VersionData(verVal, mod);
+  }
+
+  /**
+   * Checks to determine whether a string is all digits or not.
+   *
+   * @param checkMe - String to be checked.
+   * @return - true if input is exclusively digits
+   */
+  public static boolean isAllDigits(String checkMe) {
+    if (checkMe == null) {
+      return false;
+    } else {
+      return checkMe.chars().allMatch(Character::isDigit);
     }
   }
 }
