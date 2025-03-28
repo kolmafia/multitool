@@ -56,9 +56,9 @@ public class Multitool {
               + version
               + ".jar";
       downloadAFile(remoteFile);
-      startNewJVMAndExit(toolName, version);
+      startNewJVMAndExit(toolName, remoteToolVersion);
     }
-    removeExtraVersions(MULTITOOL_NAME, localToolVersion);
+    removeExtraVersions(MULTITOOL_NAME, remoteToolVersion);
     int preferredJava = getPreferredJava();
     if (localJavaVersion < preferredJava) {
       String message1 =
@@ -73,6 +73,25 @@ public class Multitool {
       System.out.println("Incompatible Local Java version for KoLmafia.  Exiting.");
       System.exit(0);
     }
+    localToolVersion = getLocalVersion(KOLMAFIA_NAME);
+    remoteToolVersion = getLatestReleaseVersion(KOLMAFIA_NAME);
+    if (localToolVersion < remoteToolVersion) {
+      String toolName = KOLMAFIA_NAME;
+      int version = remoteToolVersion;
+      String remoteFile =
+          "https://github.com/kolmafia/"
+              + toolName
+              + "/releases/download/r"
+              + version
+              + "/"
+              + toolName
+              + "-"
+              + version
+              + ".jar";
+      downloadAFile(remoteFile);
+    }
+    removeExtraVersions(KOLMAFIA_NAME, remoteToolVersion);
+    startNewJVMAndExit(KOLMAFIA_NAME, remoteToolVersion);
   }
 
   private static void removeExtraVersions(String toolName, int toolVersion) {
@@ -101,12 +120,13 @@ public class Multitool {
     logWriter.println("Starting " + command + " " + args);
     cleanUpLog();
     ProcessBuilder pb = new ProcessBuilder(command, args);
-    pb.directory(null);
+    pb.directory(new File(cwd));
     try {
       pb.start();
     } catch (IOException e) {
       System.out.println("Problem stating " + jar + ": " + e.getMessage());
     }
+    System.out.println("Started " + jar + ". Exiting.");
     System.exit(0);
   }
 
