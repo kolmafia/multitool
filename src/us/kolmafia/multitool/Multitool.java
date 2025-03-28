@@ -29,7 +29,6 @@ import javax.json.JsonReader;
 
 public class Multitool {
   static String cwd;
-  private static String localJava;
   private static int localJavaVersion;
   static PrintWriter logWriter;
   static String logFileName;
@@ -37,23 +36,21 @@ public class Multitool {
   public static void main(String[] args) {
     initLogOrExit();
     localJavaVersion = getLocalJavaVersion();
-    String separator = FileSystems.getDefault().getSeparator();
-    localJava = cleanPath(System.getProperty("java.home") + separator + "bin" + separator + "java");
+    FileSystems.getDefault().getSeparator();
     cwd = cleanPath(Paths.get("").toAbsolutePath().toString());
     int localToolVersion = getLocalVersion(MULTITOOL_NAME);
     int remoteToolVersion = getLatestReleaseVersion(MULTITOOL_NAME);
     if (localToolVersion < remoteToolVersion) {
       String toolName = MULTITOOL_NAME;
-      int version = remoteToolVersion;
       String remoteFile =
           "https://github.com/kolmafia/"
               + toolName
               + "/releases/download/r"
-              + version
+              + remoteToolVersion
               + "/"
               + toolName
               + "-"
-              + version
+              + remoteToolVersion
               + ".jar";
       downloadAFile(remoteFile);
       startNewJVMAndExit(toolName, remoteToolVersion);
@@ -77,16 +74,15 @@ public class Multitool {
     remoteToolVersion = getLatestReleaseVersion(KOLMAFIA_NAME);
     if (localToolVersion < remoteToolVersion) {
       String toolName = KOLMAFIA_NAME;
-      int version = remoteToolVersion;
       String remoteFile =
           "https://github.com/kolmafia/"
               + toolName
               + "/releases/download/r"
-              + version
+              + remoteToolVersion
               + "/"
               + toolName
               + "-"
-              + version
+              + remoteToolVersion
               + ".jar";
       downloadAFile(remoteFile);
     }
@@ -110,9 +106,8 @@ public class Multitool {
   }
 
   private static void startNewJVMAndExit(String toolName, int version) {
-    String path = localJava;
     String jar = toolName + "-" + version + ".jar";
-    String command = path + ".exe";
+    String command;
     command = "java";
     // This works because Java is in Path.  Need alternative or find out what is running current
     // process
@@ -166,59 +161,10 @@ public class Multitool {
     return retVal;
   }
 
-  public static void Oldmain(String[] args) {
-    initLogOrExit();
-    processLocalInformation();
-    int preferredJava = getPreferredJava();
-    ToolData multiData = processTool(MULTITOOL_NAME);
-    ToolData mafiaData = processTool(KOLMAFIA_NAME);
-    if (multiData.isNeedToDownload()) {
-      downloadAFile(multiData.getDownloadURL());
-      logWriter.println("***");
-      logWriter.println("Downloaded newer version of " + MULTITOOL_NAME + ".");
-      logWriter.println("***");
-      multiData = processTool(MULTITOOL_NAME);
-    }
-    if (mafiaData.isNeedToDownload()) {
-      downloadAFile(mafiaData.getDownloadURL());
-      logWriter.println("***");
-      logWriter.println("Downloaded newer version of " + KOLMAFIA_NAME + "'");
-      logWriter.println("***");
-      mafiaData = processTool(KOLMAFIA_NAME);
-    }
-    displayLocalInformation();
-    logWriter.println("Preferred Java version: " + preferredJava);
-    if (preferredJava > localJavaVersion) {
-      logWriter.println("Local Java too low for " + KOLMAFIA_NAME + ".  Running disabled.");
-    }
-    displayToolInformation(multiData);
-    displayToolInformation(mafiaData);
-    if (args.length > 0) {
-      if (args[0].equalsIgnoreCase("run")) {
-        try {
-          if (preferredJava <= localJavaVersion) {
-            startSecondJVM(mafiaData);
-          }
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        }
-      }
-    }
-    logWriter.close();
-    System.exit(0);
-  }
-
   static void processLocalInformation() {
-    String separator = FileSystems.getDefault().getSeparator();
+    FileSystems.getDefault().getSeparator();
     cwd = cleanPath(Paths.get("").toAbsolutePath().toString());
-    localJava = cleanPath(System.getProperty("java.home") + separator + "bin" + separator + "java");
     localJavaVersion = getLocalJavaVersion();
-  }
-
-  public static void displayLocalInformation() {
-    logWriter.println("Current working directory: " + cwd);
-    logWriter.println("Path to local Java: " + localJava);
-    logWriter.println("Local Java version: " + localJavaVersion);
   }
 
   private static int getPreferredJava() {
@@ -260,43 +206,6 @@ public class Multitool {
     }
   }
 
-  private static ToolData processTool(String toolName) {
-    ToolData retVal = new ToolData(toolName);
-    retVal.setLatestVersion(getLatestReleaseVersion(toolName));
-    int version = retVal.getLatestVersion();
-    String remoteFile =
-        "https://github.com/kolmafia/"
-            + toolName
-            + "/releases/download/r"
-            + version
-            + "/"
-            + toolName
-            + "-"
-            + version
-            + ".jar";
-    retVal.setDownloadURL(remoteFile);
-    retVal.setLocalJars(processDirectory(toolName));
-    retVal.setLocalModificationFound(false);
-    List<String> locals = retVal.getLocalJars();
-    String runMe = "";
-    int localVersion = 0;
-    for (String systemJarName : locals) {
-      String jarName = systemJarName.toLowerCase();
-      VersionData verDat = getVersionDataFromFilename(jarName, toolName);
-      runMe = systemJarName;
-      localVersion = verDat.getVersion();
-      retVal.setLocalModificationFound(verDat.isModified());
-    }
-    retVal.setCurrentVersion(localVersion);
-    retVal.setNeedToDownload(localVersion < version);
-    retVal.setLatestJarFile(Paths.get(runMe).toFile());
-    return retVal;
-  }
-
-  private static void displayToolInformation(ToolData tool) {
-    logWriter.println(tool);
-  }
-
   private static void downloadAFile(String location) {
     String localName = location.substring(location.lastIndexOf("/") + 1);
     InputStream in;
@@ -307,14 +216,6 @@ public class Multitool {
       System.out.println(
           "Failed to open " + location + " or copy to " + localName + " because " + e.getMessage());
     }
-  }
-
-  public static void startSecondJVM(ToolData tool) throws Exception {
-    String path = localJava;
-    String jar = tool.getLatestJarFile().getCanonicalPath();
-    String command = path + " -jar " + jar;
-    logWriter.println(command);
-    Runtime.getRuntime().exec(command);
   }
 
   /**
