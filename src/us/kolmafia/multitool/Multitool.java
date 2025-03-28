@@ -58,6 +58,22 @@ public class Multitool {
       downloadAFile(remoteFile);
       startNewJVMAndExit(toolName, version);
     }
+    removeExtraVersions(MULTITOOL_NAME, localToolVersion);
+  }
+
+  private static void removeExtraVersions(String toolName, int toolVersion) {
+    File f = new File(cwd);
+    String[] files = f.list();
+    if (files != null) {
+      for (String file : files) {
+        VersionData verDat = getVersionDataFromFilename(file, toolName);
+        int candidate = verDat.getVersion();
+        if ((candidate > 0) && (candidate != toolVersion)) {
+          File deleteLater = new File(file);
+          deleteLater.deleteOnExit();
+        }
+      }
+    }
   }
 
   private static void startNewJVMAndExit(String toolName, int version) {
@@ -65,7 +81,7 @@ public class Multitool {
     String jar = toolName + "-" + version + ".jar";
     String command = path + ".exe";
     command = "java";
-    // This works because Java is in Path.  Need alternatve or find out who is running current
+    // This works because Java is in Path.  Need alternative or find out what is running current
     // process
     String args = "-jar " + jar;
     logWriter.println("Starting " + command + " " + args);
@@ -407,12 +423,13 @@ public class Multitool {
   }
 
   static VersionData getVersionDataFromFilename(String jarName, String toolName) {
+    VersionData noMatch = new VersionData(-1, false);
     VersionData noResult = new VersionData(0, false);
     jarName = jarName.toLowerCase();
     toolName = toolName.toLowerCase();
     String dotJar = ".jar";
-    if (!jarName.startsWith(toolName)) return noResult;
-    if (!jarName.endsWith(dotJar)) return noResult;
+    if (!jarName.startsWith(toolName)) return noMatch;
+    if (!jarName.endsWith(dotJar)) return noMatch;
     boolean mod = false;
     int i = jarName.indexOf(toolName);
     String hold = jarName.substring(i + toolName.length());

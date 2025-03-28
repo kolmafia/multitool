@@ -138,14 +138,14 @@ class MultitoolTest {
 
   @ParameterizedTest
   @CsvSource({
-    "kolmafia, kolmafia, 0, false",
-    "kolmafia-123, kolmafia, 0, false",
+    "kolmafia, kolmafia, -1, false",
+    "kolmafia-123, kolmafia, -1, false",
     "kolmafia123.jar, kolmafia, 0, false",
     "kolmafia-123.jar, kolmafia, 123, false",
     "kolmafia-123-m.jar, kolmafia, 123, true",
     "kolmafia-123-.jar, kolmafia, 0, false",
     "kolmafia-latest.jar, kolmafia, 0, false",
-    "notATool-123.jar, kolmafia, 0, false"
+    "notATool-123.jar, kolmafia, -1, false"
   })
   public void itShouldGetVersions(
       String jarName, String toolName, int expectedVersion, boolean expectedMod) {
