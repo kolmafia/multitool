@@ -59,6 +59,20 @@ public class Multitool {
       startNewJVMAndExit(toolName, version);
     }
     removeExtraVersions(MULTITOOL_NAME, localToolVersion);
+    int preferredJava = getPreferredJava();
+    if (localJavaVersion < preferredJava) {
+      String message1 =
+          "Local Java version "
+              + localToolVersion
+              + " is lower than preferred Java version of "
+              + preferredJava;
+      String message2 = "Cannot run KoLmafia.  Exiting.";
+      logWriter.println(message1);
+      logWriter.println(message2);
+      cleanUpLog();
+      System.out.println("Incompatible Local Java version for KoLmafia.  Exiting.");
+      System.exit(0);
+    }
   }
 
   private static void removeExtraVersions(String toolName, int toolVersion) {
