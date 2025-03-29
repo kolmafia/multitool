@@ -6,6 +6,6 @@
 A utility for inspecting portions of the KoLmafia local environment, downloading new versions and launching [KoLmafia](https://github.com/kolmafia/kolmafia).
 
 
-Note - this is a work in progress.  Assistance in setting up the project so that permissions and protections and authorizations are the same as KoLmafia is solicited and appreciated.  Same for workflows and tasks associated with commits and PRs.
+Note - this is a work in progress.  Assistance in verifying that permissions and protections and authorizations are the same as KoLmafia is solicited and appreciated.  Same for test coverage metrics, workflows and tasks associated with commits and PRs.
 
-The tool makes several assumptions about naming conventions so there are environments where it won't work well.  For the moment, download the jar file into the directory containing the KoLmafia jar file (or that will contain it).  Open a command line.  Enter "java -jar multitool-rXXX.jar" to download updates and display information and "java -jar multitool-rXXX.jar run" to do the same followed by a launch of KoLmafia.  "XXX" is the version number of the multitool jar file being run.  The command line is needed because that is the only place the information is displayed.
+The tool makes several assumptions about naming conventions so there are environments where it won't work well.  For the moment, download the jar file into the directory containing the KoLmafia jar file (or that will contain it).  Open a command line.  Enter "java -jar multitool-rXXX.jar" to download updates to multitool and KoLmafia as needed and then run KoLmafia.
