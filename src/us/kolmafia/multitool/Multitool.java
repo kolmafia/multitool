@@ -107,21 +107,27 @@ public class Multitool {
 
   private static void startNewJVMAndExit(String toolName, int version) {
     String jar = toolName + "-" + version + ".jar";
-    String command;
-    command = "java";
     // This works because Java is in Path.  Need alternative or find out what is running current
     // process
-    String args = "-jar " + jar;
-    logWriter.println("Starting " + command + " " + args);
+    String[] args = {"java", "-jar", jar};
+    StringBuilder dispArgs = new StringBuilder();
+    for (String arg : args) {
+      dispArgs.append(" ").append(arg);
+    }
+    logWriter.println("Starting " + dispArgs);
     cleanUpLog();
-    ProcessBuilder pb = new ProcessBuilder(command, args);
+    ProcessBuilder pb = new ProcessBuilder(args);
     pb.directory(new File(cwd));
+    File log = new File("log");
+    pb.redirectErrorStream(true);
+    pb.redirectOutput(ProcessBuilder.Redirect.appendTo(log));
+    System.out.println(pb.command());
     try {
       pb.start();
+      System.out.println("Started " + jar + ". Exiting.");
     } catch (IOException e) {
       System.out.println("Problem stating " + jar + ": " + e.getMessage());
     }
-    System.out.println("Started " + jar + ". Exiting.");
     System.exit(0);
   }
 
