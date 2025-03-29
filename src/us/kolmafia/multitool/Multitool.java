@@ -29,64 +29,148 @@ import javax.json.JsonReader;
 
 public class Multitool {
   static String cwd;
-  private static String localJava;
   private static int localJavaVersion;
   static PrintWriter logWriter;
   static String logFileName;
 
   public static void main(String[] args) {
     initLogOrExit();
-    processLocalInformation();
+    localJavaVersion = getLocalJavaVersion();
+    FileSystems.getDefault().getSeparator();
+    cwd = cleanPath(Paths.get("").toAbsolutePath().toString());
+    int localToolVersion = getLocalVersion(MULTITOOL_NAME);
+    int remoteToolVersion = getLatestReleaseVersion(MULTITOOL_NAME);
+    if (localToolVersion < remoteToolVersion) {
+      String toolName = MULTITOOL_NAME;
+      String remoteFile =
+          "https://github.com/kolmafia/"
+              + toolName
+              + "/releases/download/r"
+              + remoteToolVersion
+              + "/"
+              + toolName
+              + "-"
+              + remoteToolVersion
+              + ".jar";
+      downloadAFile(remoteFile);
+      startNewJVMAndExit(toolName, remoteToolVersion);
+    }
+    removeExtraVersions(MULTITOOL_NAME, remoteToolVersion);
     int preferredJava = getPreferredJava();
-    ToolData multiData = processTool(MULTITOOL_NAME);
-    ToolData mafiaData = processTool(KOLMAFIA_NAME);
-    if (multiData.isNeedToDownload()) {
-      downloadAFile(multiData.getDownloadURL());
-      logWriter.println("***");
-      logWriter.println("Downloaded newer version of " + MULTITOOL_NAME + ".");
-      logWriter.println("***");
-      multiData = processTool(MULTITOOL_NAME);
+    if (localJavaVersion < preferredJava) {
+      String message1 =
+          "Local Java version "
+              + localToolVersion
+              + " is lower than preferred Java version of "
+              + preferredJava;
+      String message2 = "Cannot run KoLmafia.  Exiting.";
+      logWriter.println(message1);
+      logWriter.println(message2);
+      cleanUpLog();
+      System.out.println("Incompatible Local Java version for KoLmafia.  Exiting.");
+      System.exit(0);
     }
-    if (mafiaData.isNeedToDownload()) {
-      downloadAFile(mafiaData.getDownloadURL());
-      logWriter.println("***");
-      logWriter.println("Downloaded newer version of " + KOLMAFIA_NAME + "'");
-      logWriter.println("***");
-      mafiaData = processTool(KOLMAFIA_NAME);
+    localToolVersion = getLocalVersion(KOLMAFIA_NAME);
+    remoteToolVersion = getLatestReleaseVersion(KOLMAFIA_NAME);
+    if (localToolVersion < remoteToolVersion) {
+      String toolName = KOLMAFIA_NAME;
+      String remoteFile =
+          "https://github.com/kolmafia/"
+              + toolName
+              + "/releases/download/r"
+              + remoteToolVersion
+              + "/"
+              + toolName
+              + "-"
+              + remoteToolVersion
+              + ".jar";
+      downloadAFile(remoteFile);
     }
-    displayLocalInformation();
-    logWriter.println("Preferred Java version: " + preferredJava);
-    if (preferredJava > localJavaVersion) {
-      logWriter.println("Local Java too low for " + KOLMAFIA_NAME + ".  Running disabled.");
-    }
-    displayToolInformation(multiData);
-    displayToolInformation(mafiaData);
-    if (args.length > 0) {
-      if (args[0].equalsIgnoreCase("run")) {
-        try {
-          if (preferredJava <= localJavaVersion) {
-            startSecondJVM(mafiaData);
-          }
-        } catch (Exception e) {
-          throw new RuntimeException(e);
+    removeExtraVersions(KOLMAFIA_NAME, remoteToolVersion);
+    startNewJVMAndExit(KOLMAFIA_NAME, remoteToolVersion);
+  }
+
+  private static void removeExtraVersions(String toolName, int toolVersion) {
+    File f = new File(cwd);
+    String[] files = f.list();
+    if (files != null) {
+      for (String file : files) {
+        VersionData verDat = getVersionDataFromFilename(file, toolName);
+        int candidate = verDat.getVersion();
+        if ((candidate > 0) && (candidate != toolVersion)) {
+          File deleteLater = new File(file);
+          deleteLater.deleteOnExit();
         }
       }
     }
-    logWriter.close();
+  }
+
+  private static void startNewJVMAndExit(String toolName, int version) {
+    String jar = toolName + "-" + version + ".jar";
+    // This works because Java is in Path.  Need alternative or find out what is running current
+    // process
+    String[] args = {"java", "-jar", jar};
+    StringBuilder dispArgs = new StringBuilder();
+    for (String arg : args) {
+      dispArgs.append(" ").append(arg);
+    }
+    logWriter.println("Starting " + dispArgs);
+    cleanUpLog();
+    ProcessBuilder pb = new ProcessBuilder(args);
+    pb.directory(new File(cwd));
+    File log = new File("log");
+    pb.redirectErrorStream(true);
+    pb.redirectOutput(ProcessBuilder.Redirect.appendTo(log));
+    System.out.println(pb.command());
+    try {
+      pb.start();
+      System.out.println("Started " + jar + ". Exiting.");
+    } catch (IOException e) {
+      System.out.println("Problem stating " + jar + ": " + e.getMessage());
+    }
     System.exit(0);
   }
 
-  static void processLocalInformation() {
-    String separator = FileSystems.getDefault().getSeparator();
-    cwd = cleanPath(Paths.get("").toAbsolutePath().toString());
-    localJava = cleanPath(System.getProperty("java.home") + separator + "bin" + separator + "java");
-    localJavaVersion = getLocalJavaVersion();
+  public static void cleanUpLog() {
+    logWriter.println("Log closed at " + formattedTimeNow());
+    logWriter.flush();
+    logWriter.close();
   }
 
-  public static void displayLocalInformation() {
-    logWriter.println("Current working directory: " + cwd);
-    logWriter.println("Path to local Java: " + localJava);
-    logWriter.println("Local Java version: " + localJavaVersion);
+  /**
+   * Looks for files that satisfy the naming convention in the current working directory. Extracts
+   * the version numbers and returns the highest one unless there are no files satisfying the naming
+   * convention in which case zero is returned.
+   *
+   * @param toolName Tool name used a prefix
+   * @return Highest version of tool or zero
+   */
+  private static int getLocalVersion(String toolName) {
+    int retVal = 0;
+    try {
+      File f = new File(cwd);
+      String[] files = f.list();
+      if (files != null) {
+        for (String file : files) {
+          VersionData verDat = getVersionDataFromFilename(file, toolName);
+          int candidate = verDat.getVersion();
+          if (candidate > retVal) {
+            retVal = candidate;
+          }
+        }
+      }
+    } catch (Exception e) {
+      String message = "Problem creating " + cwd + " because " + e.getMessage();
+      System.out.println(message);
+      logWriter.println(message);
+    }
+    return retVal;
+  }
+
+  static void processLocalInformation() {
+    FileSystems.getDefault().getSeparator();
+    cwd = cleanPath(Paths.get("").toAbsolutePath().toString());
+    localJavaVersion = getLocalJavaVersion();
   }
 
   private static int getPreferredJava() {
@@ -121,44 +205,11 @@ public class Multitool {
     i = js.indexOf("&");
     js = js.substring(0, i);
     retVal = js;
-    return Integer.parseInt(retVal);
-  }
-
-  private static ToolData processTool(String toolName) {
-    ToolData retVal = new ToolData(toolName);
-    retVal.setLatestVersion(getLatestReleaseVersion(toolName));
-    int version = retVal.getLatestVersion();
-    String remoteFile =
-        "https://github.com/kolmafia/"
-            + toolName
-            + "/releases/download/r"
-            + version
-            + "/"
-            + toolName
-            + "-"
-            + version
-            + ".jar";
-    retVal.setDownloadURL(remoteFile);
-    retVal.setLocalJars(processDirectory(toolName));
-    retVal.setLocalModificationFound(false);
-    List<String> locals = retVal.getLocalJars();
-    String runMe = "";
-    int localVersion = 0;
-    for (String systemJarName : locals) {
-      String jarName = systemJarName.toLowerCase();
-      VersionData verDat = getVersionDataFromFilename(jarName, toolName);
-      runMe = systemJarName;
-      localVersion = verDat.getVersion();
-      retVal.setLocalModificationFound(verDat.isModified());
+    if (isAllDigits(retVal)) {
+      return Integer.parseInt(retVal);
+    } else {
+      return 0;
     }
-    retVal.setCurrentVersion(localVersion);
-    retVal.setNeedToDownload(localVersion < version);
-    retVal.setLatestJarFile(Paths.get(runMe).toFile());
-    return retVal;
-  }
-
-  private static void displayToolInformation(ToolData tool) {
-    logWriter.println(tool);
   }
 
   private static void downloadAFile(String location) {
@@ -173,19 +224,25 @@ public class Multitool {
     }
   }
 
-  public static void startSecondJVM(ToolData tool) throws Exception {
-    String path = localJava;
-    String jar = tool.getLatestJarFile().getCanonicalPath();
-    String command = path + " -jar " + jar;
-    logWriter.println(command);
-    Runtime.getRuntime().exec(command);
-  }
-
-  private static int getLocalJavaVersion() {
+  /**
+   * For Java 9 and beyond the Java version number will begin with X.Y.Z with X, Y and Z being
+   * positive integers representing Major release number, Minor release number and Patch release
+   * number. Since this code is not intended to work on anything less that Java 11 only that format
+   * will be expected and only the major version number reported. Note that an alternative
+   * implementation for Java 9 and beyond is to use Runtime.version() instead of the system
+   * property.
+   *
+   * @return Major java version of current JRE or zero
+   */
+  static int getLocalJavaVersion() {
     String locStr = System.getProperty("java.version");
     int i = locStr.indexOf(".");
     String num = locStr.substring(0, i);
-    return Integer.parseInt(num);
+    if (isAllDigits(num)) {
+      return Integer.parseInt(num);
+    } else {
+      return 0;
+    }
   }
 
   private static int getLatestReleaseVersion(String tool) {
@@ -232,7 +289,11 @@ public class Multitool {
       JsonObject jsonObject = reader.readObject();
       String name = jsonObject.getString("name");
       reader.close();
-      return Integer.parseInt(name);
+      if (isAllDigits(name)) {
+        return Integer.parseInt(name);
+      } else {
+        return 0;
+      }
     }
   }
 
@@ -287,10 +348,8 @@ public class Multitool {
             + MULTITOOL_NAME
             + ".log";
     try {
-      logWriter = new PrintWriter(new BufferedWriter(new FileWriter(logFileName)));
-      Calendar timestamp = new GregorianCalendar();
-      SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd_HH_mmZ");
-      String tNow = dateFormat.format(timestamp.getTime());
+      logWriter = new PrintWriter(new BufferedWriter(new FileWriter(logFileName, true)));
+      String tNow = formattedTimeNow();
       logWriter.println("Log opened at " + tNow);
     } catch (IOException e) {
       System.out.println("Can't open log file " + logFileName + " because " + e.getMessage());
@@ -298,13 +357,20 @@ public class Multitool {
     }
   }
 
+  public static String formattedTimeNow() {
+    Calendar timestamp = new GregorianCalendar();
+    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd_HH_mmZ");
+    return dateFormat.format(timestamp.getTime());
+  }
+
   static VersionData getVersionDataFromFilename(String jarName, String toolName) {
+    VersionData noMatch = new VersionData(-1, false);
     VersionData noResult = new VersionData(0, false);
     jarName = jarName.toLowerCase();
     toolName = toolName.toLowerCase();
     String dotJar = ".jar";
-    if (!jarName.startsWith(toolName)) return noResult;
-    if (!jarName.endsWith(dotJar)) return noResult;
+    if (!jarName.startsWith(toolName)) return noMatch;
+    if (!jarName.endsWith(dotJar)) return noMatch;
     boolean mod = false;
     int i = jarName.indexOf(toolName);
     String hold = jarName.substring(i + toolName.length());
@@ -317,13 +383,22 @@ public class Multitool {
       hold = hold.substring(0, i);
       mod = true;
     }
-    boolean isNumeric = hold.chars().allMatch(Character::isDigit);
-    if (!isNumeric) return noResult;
-    try {
-      int verVal = Integer.parseInt(hold);
-      return new VersionData(verVal, mod);
-    } catch (NumberFormatException e) {
-      return noResult;
+    if (!isAllDigits(hold)) return noResult;
+    int verVal = Integer.parseInt(hold);
+    return new VersionData(verVal, mod);
+  }
+
+  /**
+   * Checks to determine whether a string is all digits or not.
+   *
+   * @param checkMe - String to be checked.
+   * @return - true if input is exclusively digits
+   */
+  public static boolean isAllDigits(String checkMe) {
+    if (checkMe == null) {
+      return false;
+    } else {
+      return checkMe.chars().allMatch(Character::isDigit);
     }
   }
 }

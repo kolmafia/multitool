@@ -11,9 +11,12 @@ import static us.kolmafia.multitool.Constants.MULTITOOL_NAME;
 import static us.kolmafia.multitool.Constants.ROOT_LOCATION;
 import static us.kolmafia.multitool.Multitool.cleanPath;
 import static us.kolmafia.multitool.Multitool.cwd;
+import static us.kolmafia.multitool.Multitool.formattedTimeNow;
+import static us.kolmafia.multitool.Multitool.getLocalJavaVersion;
 import static us.kolmafia.multitool.Multitool.getVersionDataFromFilename;
 import static us.kolmafia.multitool.Multitool.getVersionFromInputStream;
 import static us.kolmafia.multitool.Multitool.initLogOrExit;
+import static us.kolmafia.multitool.Multitool.isAllDigits;
 import static us.kolmafia.multitool.Multitool.logFileName;
 import static us.kolmafia.multitool.Multitool.logWriter;
 import static us.kolmafia.multitool.Multitool.processDirectory;
@@ -92,16 +95,21 @@ class MultitoolTest {
     }
     inDir = processDirectory(KOLMAFIA_NAME);
     assertTrue(inDir.isEmpty());
-    cleanUpLog();
+    cleanUpAndDeleteLog();
   }
 
-  public void cleanUpLog() {
-    logWriter.flush();
-    logWriter.close();
+  public void cleanUpAndDeleteLog() {
+    cleanUpLog();
     boolean whoCares = new File(logFileName).delete();
     if (!whoCares) {
       System.out.println("Failed to delete " + logFileName);
     }
+  }
+
+  public void cleanUpLog() {
+    logWriter.println("Log closed at " + formattedTimeNow());
+    logWriter.flush();
+    logWriter.close();
   }
 
   @Test
@@ -130,19 +138,37 @@ class MultitoolTest {
 
   @ParameterizedTest
   @CsvSource({
-    "kolmafia, kolmafia, 0, false",
-    "kolmafia-123, kolmafia, 0, false",
+    "kolmafia, kolmafia, -1, false",
+    "kolmafia-123, kolmafia, -1, false",
     "kolmafia123.jar, kolmafia, 0, false",
     "kolmafia-123.jar, kolmafia, 123, false",
     "kolmafia-123-m.jar, kolmafia, 123, true",
     "kolmafia-123-.jar, kolmafia, 0, false",
     "kolmafia-latest.jar, kolmafia, 0, false",
-    "notatool-123.jar, kolmafia, 0, false"
+    "notATool-123.jar, kolmafia, -1, false"
   })
   public void itShouldGetVersions(
-      String jarName, String toolName, int expectedVersion, boolean expectedmod) {
+      String jarName, String toolName, int expectedVersion, boolean expectedMod) {
     VersionData vd = getVersionDataFromFilename(jarName, toolName);
     assertEquals(expectedVersion, vd.getVersion());
-    assertEquals(expectedmod, vd.isModified());
+    assertEquals(expectedMod, vd.isModified());
+  }
+
+  @ParameterizedTest
+  @CsvSource({"abc, false", "123, true", "-123, false", "9999999, true"})
+  public void itShouldCheckDigits(String checkMe, boolean expected) {
+    assertEquals(expected, isAllDigits(checkMe));
+  }
+
+  @Test
+  public void itShouldCheckNull() {
+    assertFalse(isAllDigits(null));
+  }
+
+  @Test
+  public void itShouldGetSameJavaVersionUsingAlternative() {
+    Runtime.Version runtimeVersion = Runtime.version();
+    String version = String.valueOf(runtimeVersion.version().get(0));
+    assertEquals(version, String.valueOf(getLocalJavaVersion()));
   }
 }
